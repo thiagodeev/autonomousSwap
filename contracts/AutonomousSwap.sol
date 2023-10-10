@@ -25,10 +25,8 @@ contract AutonomousSwap {
   struct SubOrder {
     address token;
     bytes4 tokenType;
-    //can be an quantified ERC20 token or an NFT ID
-    uint256 quantityOrId;
-    //for the case of an ERC1155 token
-    uint256 tokenId;
+    uint256 tokenId; //for the case of an ERC721/ERC1155 token
+    uint256 quantity;
     Status individualStatus;
   }
 
@@ -40,23 +38,29 @@ contract AutonomousSwap {
     Canceled
   }
 
-  function createOrder(address token, bytes4 interfaceId, uint256 quantityOrId) public {
+  function createOrder(address token, bytes4 interfaceId, uint256 id, uint256 quantity) public {
+    uint256 tokenId = interfaceId;
+
+    if(!ERC165Checker.supportsInterface(account, interfaceId)){
+      if(_isERC20(token)){
+        tokenId = ERC20_ID;
+      } else {
+        revert('Token isnt ERC20, nor ERC721, nor ERC1155.');
+      }
+    };
+    
     bytes32 randomId = 0xe0d4f6e915eb01068ecd79ce922236bf16c38b2d88cccffcbc57ed53ef3b74aa;
     orders[randomId].creator = msg.sender;
 
-    SubOrder memory subOrder = SubOrder(
-      token,
-      interfaceId,
-      quantityOrId,
-      0,
-      Status.Submited
-    );
 
-    // MainOrder memory order = MainOrder(
-    //   msg.sender,
-    //   address(0),
-    //   Status.Pending
-    // );
+    orderOf[msg.sender][randomId] = SubOrder(
+      token,
+      tokenId,
+      id,
+      quantity,
+
+    );
+    
   }
 
   function supportsInterface(address account, bytes4 interfaceId) external view returns (bool){
