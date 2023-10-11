@@ -39,10 +39,13 @@ contract AutonomousSwap {
   }
 
   error InvalidToken(address tokenAddress);
-  error ERC20InsufficientBalance(uint256 balance, uint256 needed);
+  error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
+  error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
+  error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId);
 
   function createOrder(address token, uint256 id, uint256 quantity) public {
     bytes4 interfaceId = _getAndValidateInterfaceId(token);
+    _checkIfHasSufficientBalance(token, id, quantity, interfaceId);
     
     
     bytes32 randomId = 0xe0d4f6e915eb01068ecd79ce922236bf16c38b2d88cccffcbc57ed53ef3b74aa;
@@ -80,24 +83,31 @@ contract AutonomousSwap {
     return interfaceId;
   }
 
-  function _checkIfHasBalance(address token, uint256 id, uint256 quantity, bytes4 interfaceId) internal view returns (bool){
-    uint256 value;
+  function _checkIfHasSufficientBalance(address token, uint256 tokenId, uint256 quantity, bytes4 interfaceId) internal view returns (bool){
+    uint256 balance;
     address owner;
 
     if (interfaceId == ERC20_ID) {
-      value = IERC20(token).balanceOf(msg.sender);
-      if (value >= quantity) {
+      balance = IERC20(token).balanceOf(msg.sender);
+      if (balance >= quantity) {
         return true;
       } else {
-        revert ERC20InsufficientBalance(value, quantity);
+        revert ERC20InsufficientBalance(msg.sender, balance, quantity);
       }
     } else
     if (interfaceId == ERC721_ID) {
-      owner = IERC721(token).ownerOf(id);
-      if (owner == quantity) {
+      owner = IERC721(token).ownerOf(tokenId);
+      if (owner == msg.sender) {
         return true;
       } else {
-        revert ERC20InsufficientBalance(value, quantity);
+        revert ERC721IncorrectOwner(msg.sender, tokenId, owner);
+      }
+    } else {
+      balance = IERC1155(token).balanceOf(msg.sender, tokenId);
+      if (balance >= quantity) {
+        return true;
+      } else {
+        revert ERC1155InsufficientBalance(msg.sender, balance, quantity, tokenId);
       }
     }
   }
