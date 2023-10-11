@@ -9,12 +9,12 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 contract AutonomousSwap {
 
   //random number for ERC20, just to identify it
-  bytes4 private constant ERC20_ID = 0xec20ec20;
-  bytes4 private constant ERC721_ID = 0x80ac58cd;
-  bytes4 private constant ERC1155_ID = 0xd9b67a26;
+  bytes4 private constant _ERC20_ID = 0xec20ec20;
+  bytes4 private constant _ERC721_ID = 0x80ac58cd;
+  bytes4 private constant _ERC1155_ID = 0xd9b67a26;
 
-  mapping (bytes32 orderID => MainOrder) public orders;
-  mapping (address user => mapping (bytes32 orderID => SubOrder)) public orderOf;
+  mapping (bytes32 orderId => MainOrder) private _orders;
+  mapping (address user => mapping (bytes32 orderId => SubOrder)) public _orderOf;
 
   struct MainOrder {
     address creator;
@@ -43,16 +43,24 @@ contract AutonomousSwap {
   error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
   error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId);
 
+  function getOrderMembersById(bytes32 orderId) public view returns (address creator, address partner) {
+    return (_orders[orderId].creator, _orders[orderId].partner);
+  }
+  
+  function getOrderByUser(address user, bytes32 orderId) public view returns (SubOrder memory subOrder) {
+    return _orderOf[user][orderId];
+  }
+
   function createOrder(address token, uint256 id, uint256 quantity) public returns (bool) {
     bytes4 interfaceId = _getAndValidateInterfaceId(token);
     _checkIfHasSufficientBalance(token, id, quantity, interfaceId);
     
     
     bytes32 randomId = 0xe0d4f6e915eb01068ecd79ce922236bf16c38b2d88cccffcbc57ed53ef3b74aa;
-    orders[randomId].creator = msg.sender;
+    _orders[randomId].creator = msg.sender;
 
 
-    orderOf[msg.sender][randomId] = SubOrder(
+    _orderOf[msg.sender][randomId] = SubOrder(
       token,
       interfaceId,
       id,
@@ -67,15 +75,15 @@ contract AutonomousSwap {
     bytes4 interfaceId;
 
     if (ERC165Checker.supportsERC165(account)){
-      if(ERC165Checker.supportsERC165InterfaceUnchecked(account, ERC721_ID)){
-        interfaceId = ERC721_ID;
+      if(ERC165Checker.supportsERC165InterfaceUnchecked(account, _ERC721_ID)){
+        interfaceId = _ERC721_ID;
       } else 
-      if(ERC165Checker.supportsERC165InterfaceUnchecked(account, ERC1155_ID)){
-        interfaceId = ERC1155_ID;
+      if(ERC165Checker.supportsERC165InterfaceUnchecked(account, _ERC1155_ID)){
+        interfaceId = _ERC1155_ID;
       }
     } else {
       if (_isERC20(account)) {
-        interfaceId = ERC20_ID;
+        interfaceId = _ERC20_ID;
       } else {
         revert InvalidToken(account);
       }
@@ -88,7 +96,7 @@ contract AutonomousSwap {
     uint256 balance;
     address owner;
 
-    if (interfaceId == ERC20_ID) {
+    if (interfaceId == _ERC20_ID) {
       balance = IERC20(token).balanceOf(msg.sender);
       if (balance >= quantity) {
         return true;
@@ -96,7 +104,7 @@ contract AutonomousSwap {
         revert ERC20InsufficientBalance(msg.sender, balance, quantity);
       }
     } else
-    if (interfaceId == ERC721_ID) {
+    if (interfaceId == _ERC721_ID) {
       owner = IERC721(token).ownerOf(tokenId);
       if (owner == msg.sender) {
         return true;
@@ -123,10 +131,10 @@ contract AutonomousSwap {
   }
 
   function _isERC721(address account) internal view returns (bool){
-    return ERC165Checker.supportsInterface(account, ERC721_ID);
+    return ERC165Checker.supportsInterface(account, _ERC721_ID);
   }
 
   function _isERC1155(address account) internal view returns (bool){
-    return ERC165Checker.supportsInterface(account, ERC1155_ID);
+    return ERC165Checker.supportsInterface(account, _ERC1155_ID);
   }
 }
