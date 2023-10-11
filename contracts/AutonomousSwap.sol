@@ -43,7 +43,7 @@ contract AutonomousSwap {
   error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
   error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId);
 
-  function createOrder(address token, uint256 id, uint256 quantity) public {
+  function createOrder(address token, uint256 id, uint256 quantity) public returns (bool) {
     bytes4 interfaceId = _getAndValidateInterfaceId(token);
     _checkIfHasSufficientBalance(token, id, quantity, interfaceId);
     
@@ -60,6 +60,7 @@ contract AutonomousSwap {
       Status.Pending
     );
     
+    return true;
   }
 
   function _getAndValidateInterfaceId(address account) internal view returns (bytes4){
