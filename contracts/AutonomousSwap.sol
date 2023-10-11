@@ -19,22 +19,22 @@ contract AutonomousSwap {
   struct MainOrder {
     address creator;
     address partner;
-    Status status;
   }
 
   struct SubOrder {
     address token;
-    bytes4 tokenType;
-    uint256 interfaceId; //for the case of an ERC721/ERC1155 token
+    bytes4 interfaceId;
+    uint256 tokenId; //for the case of an ERC721/ERC1155 token
     uint256 quantity;
     Status individualStatus;
   }
 
   enum Status {
     Pending,
-    Submited,
-    Accepted,
-    Rejected,
+    TokenSubmited,
+    AllowanceGranted,
+    TokenLocked,
+    Completed,
     Canceled
   }
 
@@ -57,7 +57,7 @@ contract AutonomousSwap {
       interfaceId,
       id,
       quantity,
-
+      Status.Pending
     );
     
   }
