@@ -25,7 +25,7 @@ contract AutonomousSwap {
   struct SubOrder {
     address token;
     bytes4 tokenType;
-    uint256 tokenId; //for the case of an ERC721/ERC1155 token
+    uint256 interfaceId; //for the case of an ERC721/ERC1155 token
     uint256 quantity;
     Status individualStatus;
   }
@@ -38,16 +38,12 @@ contract AutonomousSwap {
     Canceled
   }
 
-  function createOrder(address token, bytes4 interfaceId, uint256 id, uint256 quantity) public {
-    uint256 tokenId = interfaceId;
+  error InvalidToken(address tokenAddress);
+  error ERC20InsufficientBalance(uint256 balance, uint256 needed);
 
-    if(!ERC165Checker.supportsInterface(account, interfaceId)){
-      if(_isERC20(token)){
-        tokenId = ERC20_ID;
-      } else {
-        revert('Token isnt ERC20, nor ERC721, nor ERC1155.');
-      }
-    };
+  function createOrder(address token, uint256 id, uint256 quantity) public {
+    bytes4 interfaceId = _getAndValidateInterfaceId(token);
+    
     
     bytes32 randomId = 0xe0d4f6e915eb01068ecd79ce922236bf16c38b2d88cccffcbc57ed53ef3b74aa;
     orders[randomId].creator = msg.sender;
@@ -55,7 +51,7 @@ contract AutonomousSwap {
 
     orderOf[msg.sender][randomId] = SubOrder(
       token,
-      tokenId,
+      interfaceId,
       id,
       quantity,
 
@@ -63,8 +59,47 @@ contract AutonomousSwap {
     
   }
 
-  function supportsInterface(address account, bytes4 interfaceId) external view returns (bool){
-    return ERC165Checker.supportsInterface(account, interfaceId);
+  function _getAndValidateInterfaceId(address account) internal view returns (bytes4){
+    bytes4 interfaceId;
+
+    if (ERC165Checker.supportsERC165(account)){
+      if(ERC165Checker.supportsERC165InterfaceUnchecked(account, ERC721_ID)){
+        interfaceId = ERC721_ID;
+      } else 
+      if(ERC165Checker.supportsERC165InterfaceUnchecked(account, ERC1155_ID)){
+        interfaceId = ERC1155_ID;
+      }
+    } else {
+      if (_isERC20(account)) {
+        interfaceId = ERC20_ID;
+      } else {
+        revert InvalidToken(account);
+      }
+    }
+
+    return interfaceId;
+  }
+
+  function _checkIfHasBalance(address token, uint256 id, uint256 quantity, bytes4 interfaceId) internal view returns (bool){
+    uint256 value;
+    address owner;
+
+    if (interfaceId == ERC20_ID) {
+      value = IERC20(token).balanceOf(msg.sender);
+      if (value >= quantity) {
+        return true;
+      } else {
+        revert ERC20InsufficientBalance(value, quantity);
+      }
+    } else
+    if (interfaceId == ERC721_ID) {
+      owner = IERC721(token).ownerOf(id);
+      if (owner == quantity) {
+        return true;
+      } else {
+        revert ERC20InsufficientBalance(value, quantity);
+      }
+    }
   }
 
   function _isERC20(address account) internal view returns (bool){
