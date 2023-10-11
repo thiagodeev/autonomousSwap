@@ -71,6 +71,23 @@ contract AutonomousSwap {
     return true;
   }
 
+  function joinsOrder(bytes32 orderId, address token, uint256 id, uint256 quantity) public returns (bool){
+    bytes4 interfaceId = _getAndValidateInterfaceId(token);
+    _checkIfHasSufficientBalance(token, id, quantity, interfaceId);
+
+    _orders[orderId].partner = msg.sender;
+
+    _orderOf[msg.sender][orderId] = SubOrder(
+      token,
+      interfaceId,
+      id,
+      quantity,
+      Status.Pending
+    );
+
+    return true;
+  }
+
   function _getAndValidateInterfaceId(address account) internal view returns (bytes4){
     bytes4 interfaceId;
 
