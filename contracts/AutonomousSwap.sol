@@ -2,6 +2,8 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
@@ -24,7 +26,7 @@ contract AutonomousSwap {
 
   struct SubOrder {
     address token;
-    bytes4 interfaceId;
+    bytes4 interfaceID;
     uint256 tokenId; //for the case of an ERC721/ERC1155 token
     uint256 quantity;
     Status individualStatus;
@@ -42,6 +44,7 @@ contract AutonomousSwap {
   error MustBeTheCreator(address caller, address creator);
   error MustBeThePartner(address caller, address creator);
   error PartnerAlreadyFilled(address caller, address partner);
+  error InvalidCurrentStatus(Status current, Status needed);
 
   error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
   error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
@@ -60,7 +63,6 @@ contract AutonomousSwap {
     return _orders[orderId].partner;
   }
 
-
   function getOrderMembersById(bytes32 orderId) public view returns (address creator, address partner) {
     return (_orders[orderId].creator, _orders[orderId].partner);
   }
@@ -70,17 +72,18 @@ contract AutonomousSwap {
   }
 
   function createOrder(address token, uint256 id, uint256 quantity) public returns (bool) {
-    bytes4 interfaceId = _getAndValidateInterfaceId(token);
-    _checkIfHasSufficientBalance(token, id, quantity, interfaceId);
+    bytes4 interfaceID = _getAndValidateInterfaceID(token);
+    _checkIfHasSufficientBalance(token, id, quantity, interfaceID);
     
     
     bytes32 randomId = 0xe0d4f6e915eb01068ecd79ce922236bf16c38b2d88cccffcbc57ed53ef3b74aa;
     _orders[randomId].creator = msg.sender;
+    _orders[randomId].isActive = true;
 
 
     _orderOf[msg.sender][randomId] = SubOrder(
       token,
-      interfaceId,
+      interfaceID,
       id,
       quantity,
       Status.ProposalSubmited
@@ -92,17 +95,16 @@ contract AutonomousSwap {
   function joinsOrder(bytes32 orderId, address token, uint256 id, uint256 quantity) public isActive(orderId) returns (bool){
     address partner = _getPartner(orderId);
     if (partner != address(0)) revert PartnerAlreadyFilled(msg.sender, partner);
-    require(_getCreator(orderId) != msg.sender, 'You are already the creator of the order.')
+    require(_getCreator(orderId) != msg.sender, 'You are already the creator of the order.');
 
-    bytes4 interfaceId = _getAndValidateInterfaceId(token);
-    _checkIfHasSufficientBalance(token, id, quantity, interfaceId);
+    bytes4 interfaceID = _getAndValidateInterfaceID(token);
+    _checkIfHasSufficientBalance(token, id, quantity, interfaceID);
 
     _orders[orderId].partner = msg.sender;
-    _orders[orderId].isActive = true;
 
     _orderOf[msg.sender][orderId] = SubOrder(
       token,
-      interfaceId,
+      interfaceID,
       id,
       quantity,
       Status.ProposalSubmited
@@ -111,34 +113,52 @@ contract AutonomousSwap {
     return true;
   }
 
-  function _getAndValidateInterfaceId(address account) internal view returns (bytes4){
-    bytes4 interfaceId;
+  function transferFundsToSwap(bytes32 orderId) public isActive(orderId) returns (bool) {
+    address creator =  _getCreator(orderId);
+    if (_getCreator != msg.sender) revert MustBeTheCreator(msg.sender, creator);
+
+    SubOrder memory subOrder = _orderOf[msg.sender][orderId];
+    if (subOrder.individualStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(subOrder.individualStatus, Status.ProposalSubmited);
+
+    if (subOrder.interfaceID == _ERC20_ID) {
+      IERC20.transferFrom(msg.sender, address(this), subOrder.quantity);
+    } else 
+    if (subOrder.interfaceID == _ERC721_ID) {
+      IERC721.transferFrom(msg.sender, address(this), subOrder.tokenId);
+    } else {
+      IERC1155.safeTransferFrom
+    }
+
+  }
+
+  function _getAndValidateInterfaceID(address account) internal view returns (bytes4){
+    bytes4 interfaceID;
 
     if (ERC165Checker.supportsERC165(account)){
       if(ERC165Checker.supportsERC165InterfaceUnchecked(account, _ERC721_ID)){
-        interfaceId = _ERC721_ID;
+        interfaceID = _ERC721_ID;
       } else 
       if(ERC165Checker.supportsERC165InterfaceUnchecked(account, _ERC1155_ID)){
-        interfaceId = _ERC1155_ID;
+        interfaceID = _ERC1155_ID;
       } else {
         revert InvalidToken(account);
       }
     } else {
       if (_isERC20(account)) {
-        interfaceId = _ERC20_ID;
+        interfaceID = _ERC20_ID;
       } else {
         revert InvalidToken(account);
       }
     }
 
-    return interfaceId;
+    return interfaceID;
   }
 
-  function _checkIfHasSufficientBalance(address token, uint256 tokenId, uint256 quantity, bytes4 interfaceId) internal view returns (bool){
+  function _checkIfHasSufficientBalance(address token, uint256 tokenId, uint256 quantity, bytes4 interfaceID) internal view returns (bool){
     uint256 balance;
     address owner;
 
-    if (interfaceId == _ERC20_ID) {
+    if (interfaceID == _ERC20_ID) {
       balance = IERC20(token).balanceOf(msg.sender);
       if (balance >= quantity) {
         return true;
@@ -146,7 +166,7 @@ contract AutonomousSwap {
         revert ERC20InsufficientBalance(msg.sender, balance, quantity);
       }
     } else
-    if (interfaceId == _ERC721_ID) {
+    if (interfaceID == _ERC721_ID) {
       owner = IERC721(token).ownerOf(tokenId);
       if (owner == msg.sender) {
         return true;
