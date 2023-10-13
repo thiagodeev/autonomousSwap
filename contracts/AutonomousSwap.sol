@@ -19,6 +19,7 @@ contract AutonomousSwap {
   struct MainOrder {
     address creator;
     address partner;
+    bool isActive;
   }
 
   struct SubOrder {
@@ -31,17 +32,34 @@ contract AutonomousSwap {
 
   enum Status {
     Pending,
-    TokenSubmited,
-    AllowanceGranted,
+    ProposalSubmited,
     TokenLocked,
     Completed,
     Canceled
   }
 
   error InvalidToken(address tokenAddress);
+  error MustBeTheCreator(address caller, address creator);
+  error MustBeThePartner(address caller, address creator);
+  error PartnerAlreadyFilled(address caller, address partner);
+
   error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
   error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
   error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId);
+
+  modifier isActive(bytes32 orderId) {
+    require(_orders[orderId].isActive == true, 'This order is not active.');
+    _;
+  }
+
+  function _getCreator(bytes32 orderId) internal view returns (address) {
+    return _orders[orderId].creator;
+  }
+
+  function _getPartner(bytes32 orderId) internal view returns (address) {
+    return _orders[orderId].partner;
+  }
+
 
   function getOrderMembersById(bytes32 orderId) public view returns (address creator, address partner) {
     return (_orders[orderId].creator, _orders[orderId].partner);
@@ -65,24 +83,29 @@ contract AutonomousSwap {
       interfaceId,
       id,
       quantity,
-      Status.Pending
+      Status.ProposalSubmited
     );
     
     return true;
   }
 
-  function joinsOrder(bytes32 orderId, address token, uint256 id, uint256 quantity) public returns (bool){
+  function joinsOrder(bytes32 orderId, address token, uint256 id, uint256 quantity) public isActive(orderId) returns (bool){
+    address partner = _getPartner(orderId);
+    if (partner != address(0)) revert PartnerAlreadyFilled(msg.sender, partner);
+    require(_getCreator(orderId) != msg.sender, 'You are already the creator of the order.')
+
     bytes4 interfaceId = _getAndValidateInterfaceId(token);
     _checkIfHasSufficientBalance(token, id, quantity, interfaceId);
 
     _orders[orderId].partner = msg.sender;
+    _orders[orderId].isActive = true;
 
     _orderOf[msg.sender][orderId] = SubOrder(
       token,
       interfaceId,
       id,
       quantity,
-      Status.Pending
+      Status.ProposalSubmited
     );
 
     return true;
@@ -97,6 +120,8 @@ contract AutonomousSwap {
       } else 
       if(ERC165Checker.supportsERC165InterfaceUnchecked(account, _ERC1155_ID)){
         interfaceId = _ERC1155_ID;
+      } else {
+        revert InvalidToken(account);
       }
     } else {
       if (_isERC20(account)) {
@@ -147,11 +172,11 @@ contract AutonomousSwap {
     }
   }
 
-  function _isERC721(address account) internal view returns (bool){
-    return ERC165Checker.supportsInterface(account, _ERC721_ID);
-  }
+  // function _isERC721(address account) internal view returns (bool){
+  //   return ERC165Checker.supportsInterface(account, _ERC721_ID);
+  // }
 
-  function _isERC1155(address account) internal view returns (bool){
-    return ERC165Checker.supportsInterface(account, _ERC1155_ID);
-  }
+  // function _isERC1155(address account) internal view returns (bool){
+  //   return ERC165Checker.supportsInterface(account, _ERC1155_ID);
+  // }
 }
