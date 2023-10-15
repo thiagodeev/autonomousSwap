@@ -115,20 +115,21 @@ contract AutonomousSwap {
 
   function transferFundsToSwap(bytes32 orderId) public isActive(orderId) returns (bool) {
     address creator =  _getCreator(orderId);
-    if (_getCreator != msg.sender) revert MustBeTheCreator(msg.sender, creator);
+    if (_getCreator(orderId) != msg.sender) revert MustBeTheCreator(msg.sender, creator);
 
     SubOrder memory subOrder = _orderOf[msg.sender][orderId];
     if (subOrder.individualStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(subOrder.individualStatus, Status.ProposalSubmited);
 
     if (subOrder.interfaceID == _ERC20_ID) {
-      IERC20.transferFrom(msg.sender, address(this), subOrder.quantity);
+      IERC20(subOrder.token).transferFrom(msg.sender, address(this), subOrder.quantity);
     } else 
     if (subOrder.interfaceID == _ERC721_ID) {
-      IERC721.transferFrom(msg.sender, address(this), subOrder.tokenId);
+      IERC721(subOrder.token).safeTransferFrom(msg.sender, address(this), subOrder.tokenId);
     } else {
-      IERC1155.safeTransferFrom
+      IERC1155(subOrder.token).safeTransferFrom(msg.sender, address(this), subOrder.tokenId, subOrder.quantity, '');
     }
 
+    return true;
   }
 
   function _getAndValidateInterfaceID(address account) internal view returns (bytes4){
