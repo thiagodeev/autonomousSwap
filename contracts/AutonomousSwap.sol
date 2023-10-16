@@ -46,8 +46,11 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
   error InvalidCurrentStatus(address who, Status current, Status needed);
 
   error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
+  error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed);
   error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
+  error ERC721InsufficientApproval(address operator, uint256 tokenId);
   error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId);
+  error ERC1155MissingApprovalForAll(address operator, address owner);
 
   modifier isActive(bytes32 orderId) {
     require(_orders[orderId].isActive == true, 'This order is not active.');
@@ -72,7 +75,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
 
   function createOrder(address token, uint256 id, uint256 quantity) public returns (bool) {
     bytes4 interfaceID = _getAndValidateInterfaceID(token);
-    _checkIfHasSufficientBalance(token, id, quantity, interfaceID);
+    _checkIfHasSufficientBalance(token, id, quantity, interfaceID, false);
     
     
     bytes32 randomId = 0xe0d4f6e915eb01068ecd79ce922236bf16c38b2d88cccffcbc57ed53ef3b74aa;
@@ -97,7 +100,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     require(_getCreator(orderId) != msg.sender, 'You are already the creator of the order.');
 
     bytes4 interfaceID = _getAndValidateInterfaceID(token);
-    _checkIfHasSufficientBalance(token, id, quantity, interfaceID);
+    _checkIfHasSufficientBalance(token, id, quantity, interfaceID, false);
 
     _orders[orderId].partner = msg.sender;
 
@@ -180,31 +183,57 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     return interfaceID;
   }
 
-  function _checkIfHasSufficientBalance(address token, uint256 tokenId, uint256 quantity, bytes4 interfaceID) private view returns (bool){
+  function _checkIfHasSufficientBalance(address token, uint256 tokenId, uint256 quantity, bytes4 interfaceID, bool checkAllowance) private view returns (bool){
     uint256 balance;
     address owner;
 
     if (interfaceID == _ERC20_ID) {
-      balance = IERC20(token).balanceOf(msg.sender);
-      if (balance >= quantity) {
-        return true;
+      if(checkAllowance){
+        balance = IERC20(token).allowance(msg.sender, address(this));
+        if (balance >= quantity) {
+          return true;
+        } else {
+          revert ERC20InsufficientAllowance(msg.sender, balance, quantity);
+        }
       } else {
-        revert ERC20InsufficientBalance(msg.sender, balance, quantity);
+        balance = IERC20(token).balanceOf(msg.sender);
+        if (balance >= quantity) {
+          return true;
+        } else {
+          revert ERC20InsufficientBalance(msg.sender, balance, quantity);
+        }
       }
     } else
     if (interfaceID == _ERC721_ID) {
-      owner = IERC721(token).ownerOf(tokenId);
-      if (owner == msg.sender) {
-        return true;
+      if(checkAllowance){
+        owner = IERC721(token).getApproved(tokenId);
+        if (owner == msg.sender) {
+          return true;
+        } else {
+          revert ERC721InsufficientApproval(msg.sender, tokenId);
+        }
       } else {
-        revert ERC721IncorrectOwner(msg.sender, tokenId, owner);
+        owner = IERC721(token).ownerOf(tokenId);
+        if (owner == msg.sender) {
+          return true;
+        } else {
+          revert ERC721IncorrectOwner(msg.sender, tokenId, owner);
+        }
       }
     } else {
-      balance = IERC1155(token).balanceOf(msg.sender, tokenId);
-      if (balance >= quantity) {
-        return true;
+      if(checkAllowance){
+        if (IERC1155(token).isApprovedForAll(msg.sender, address(this))) {
+          return true;
+        } else {
+          revert ERC1155MissingApprovalForAll(address(this),msg.sender);
+        }
       } else {
-        revert ERC1155InsufficientBalance(msg.sender, balance, quantity, tokenId);
+        balance = IERC1155(token).balanceOf(msg.sender, tokenId);
+        if (balance >= quantity) {
+          return true;
+        } else {
+          revert ERC1155InsufficientBalance(msg.sender, balance, quantity, tokenId);
+        }
       }
     }
   }
