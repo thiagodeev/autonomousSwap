@@ -35,8 +35,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     Pending,
     ProposalSubmited,
     TokenLocked,
-    Completed,
-    Canceled
+    Completed
   }
 
   event StepCompleted(bytes32 indexed orderId, address indexed who, Status indexed newStatus);
@@ -44,7 +43,6 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
   error InvalidToken(address tokenAddress);
   error MustBeTheCreator(address caller, address creator);
   error MustBeThePartner(address caller, address creator);
-  error PartnerAlreadyFilled(address caller, address partner);
   error InvalidCurrentStatus(address who, Status current, Status needed);
 
   error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
@@ -110,9 +108,9 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
   }
 
   function joinsOrder(bytes32 orderId, address token, uint256 id, uint256 quantity) public isActive(orderId) returns (bool){
-    address partner = _getPartner(orderId);
-    if (partner != address(0)) revert PartnerAlreadyFilled(msg.sender, partner);
-    require(_getCreator(orderId) != msg.sender, 'You are already the creator of the order.');
+    (address creator, address partner) =  getOrderMembersById(orderId);
+    require(partner != address(0), 'One address already joined this order.');
+    require(creator != msg.sender, 'You are already the creator of the order.');
 
     bytes4 interfaceID = _getAndValidateInterfaceID(token);
     _checkIfHasSufficientBalance(msg.sender, token, id, quantity, interfaceID, false);
@@ -171,10 +169,10 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
 
     SubOrder memory partnerSubOrder = _orderOf[msg.sender][orderId];
 
-    //send funds from contract to partner
-    _checkInterfaceIdAndDoTokenTransaction(creatorSubOrder, address(this), msg.sender, false);
     //send allowed funds from contract to creator
     _checkInterfaceIdAndDoTokenTransaction(partnerSubOrder, msg.sender, creator, true);
+    //send funds from contract to partner
+    _checkInterfaceIdAndDoTokenTransaction(creatorSubOrder, address(this), msg.sender, false);
 
     //update the current state of the order
     _orderOf[msg.sender][orderId].individualStatus = Status.Completed;
@@ -184,6 +182,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
 
     return true;
   }
+
 
   //PRIVATE CONTRACT LOGIC FUNCTIONS
   function _getAndValidateInterfaceID(address account) private view returns (bytes4){
