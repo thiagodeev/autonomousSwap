@@ -2,13 +2,13 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
-contract AutonomousSwap {
+contract AutonomousSwap is ERC721Holder, ERC1155Holder{
 
   //random number for ERC20, just to identify it
   bytes4 private constant _ERC20_ID = 0xec20ec20;
@@ -16,7 +16,7 @@ contract AutonomousSwap {
   bytes4 private constant _ERC1155_ID = 0xd9b67a26;
 
   mapping (bytes32 orderId => MainOrder) private _orders;
-  mapping (address user => mapping (bytes32 orderId => SubOrder)) public _orderOf;
+  mapping (address user => mapping (bytes32 orderId => SubOrder)) private _orderOf;
 
   struct MainOrder {
     address creator;
@@ -44,7 +44,7 @@ contract AutonomousSwap {
   error MustBeTheCreator(address caller, address creator);
   error MustBeThePartner(address caller, address creator);
   error PartnerAlreadyFilled(address caller, address partner);
-  error InvalidCurrentStatus(Status current, Status needed);
+  error InvalidCurrentStatus(address who, Status current, Status needed);
 
   error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
   error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
@@ -117,9 +117,16 @@ contract AutonomousSwap {
     address creator =  _getCreator(orderId);
     if (_getCreator(orderId) != msg.sender) revert MustBeTheCreator(msg.sender, creator);
 
+    //verify the current state of the creator
     SubOrder memory subOrder = _orderOf[msg.sender][orderId];
-    if (subOrder.individualStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(subOrder.individualStatus, Status.ProposalSubmited);
+    if (subOrder.individualStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(msg.sender, subOrder.individualStatus, Status.ProposalSubmited);
 
+    //verify the current state of the partner
+    address partner = _getPartner(orderId);
+    Status partnerStatus = _orderOf[partner][orderId].individualStatus;
+    if (partnerStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(partner, partnerStatus, Status.ProposalSubmited);
+
+    //confirm the token type and lock the funds in this contract
     if (subOrder.interfaceID == _ERC20_ID) {
       IERC20(subOrder.token).transferFrom(msg.sender, address(this), subOrder.quantity);
     } else 
@@ -128,6 +135,9 @@ contract AutonomousSwap {
     } else {
       IERC1155(subOrder.token).safeTransferFrom(msg.sender, address(this), subOrder.tokenId, subOrder.quantity, '');
     }
+
+    //update the current state of the order
+    _orderOf[msg.sender][orderId].individualStatus = Status.TokenLocked;
 
     return true;
   }
