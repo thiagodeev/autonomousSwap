@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 contract AutonomousSwap is ERC721Holder, ERC1155Holder{
-
   //random number for ERC20, just to identify it
   bytes4 private constant _ERC20_ID = 0xec20ec20;
   bytes4 private constant _ERC721_ID = 0x80ac58cd;
@@ -55,11 +54,11 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     _;
   }
 
-  function _getCreator(bytes32 orderId) internal view returns (address) {
+  function _getCreator(bytes32 orderId) private view returns (address) {
     return _orders[orderId].creator;
   }
 
-  function _getPartner(bytes32 orderId) internal view returns (address) {
+  function _getPartner(bytes32 orderId) private view returns (address) {
     return _orders[orderId].partner;
   }
 
@@ -114,17 +113,16 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
   }
 
   function transferFundsToSwap(bytes32 orderId) public isActive(orderId) returns (bool) {
-    address creator =  _getCreator(orderId);
-    if (_getCreator(orderId) != msg.sender) revert MustBeTheCreator(msg.sender, creator);
+    (address creator, address partner) =  getOrderMembersById(orderId);
+    if (creator != msg.sender) revert MustBeTheCreator(msg.sender, creator);
+
+    //verify the current state of the partner
+    Status partnerStatus = _orderOf[partner][orderId].individualStatus;
+    if (partnerStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(partner, partnerStatus, Status.ProposalSubmited);
 
     //verify the current state of the creator
     SubOrder memory subOrder = _orderOf[msg.sender][orderId];
     if (subOrder.individualStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(msg.sender, subOrder.individualStatus, Status.ProposalSubmited);
-
-    //verify the current state of the partner
-    address partner = _getPartner(orderId);
-    Status partnerStatus = _orderOf[partner][orderId].individualStatus;
-    if (partnerStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(partner, partnerStatus, Status.ProposalSubmited);
 
     //confirm the token type and lock the funds in this contract
     if (subOrder.interfaceID == _ERC20_ID) {
@@ -142,7 +140,34 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     return true;
   }
 
-  function _getAndValidateInterfaceID(address account) internal view returns (bytes4){
+  function validateAndCompleteTheSwap(bytes32 orderId) public isActive(orderId) returns (bool) {
+    (address creator, address partner) =  getOrderMembersById(orderId);
+    if (partner != msg.sender) revert MustBeThePartner(msg.sender, partner);
+
+    //verify the current state of the creator
+    Status creatorStatus = _orderOf[creator][orderId].individualStatus;
+    if (creatorStatus != Status.TokenLocked) revert InvalidCurrentStatus(creator, creatorStatus, Status.TokenLocked);
+
+    SubOrder memory creatorSubOrder = _orderOf[creator][orderId];
+    SubOrder memory partnerSubOrder = _orderOf[msg.sender][orderId];
+
+    //confirm the token type and lock the funds in this contract
+    if (subOrder.interfaceID == _ERC20_ID) {
+      IERC20(subOrder.token).transferFrom(msg.sender, address(this), subOrder.quantity);
+    } else 
+    if (subOrder.interfaceID == _ERC721_ID) {
+      IERC721(subOrder.token).safeTransferFrom(msg.sender, address(this), subOrder.tokenId);
+    } else {
+      IERC1155(subOrder.token).safeTransferFrom(msg.sender, address(this), subOrder.tokenId, subOrder.quantity, '');
+    }
+
+    //update the current state of the order
+    _orderOf[msg.sender][orderId].individualStatus = Status.TokenLocked;
+
+    return true;
+  }
+
+  function _getAndValidateInterfaceID(address account) private view returns (bytes4){
     bytes4 interfaceID;
 
     if (ERC165Checker.supportsERC165(account)){
@@ -165,7 +190,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     return interfaceID;
   }
 
-  function _checkIfHasSufficientBalance(address token, uint256 tokenId, uint256 quantity, bytes4 interfaceID) internal view returns (bool){
+  function _checkIfHasSufficientBalance(address token, uint256 tokenId, uint256 quantity, bytes4 interfaceID) private view returns (bool){
     uint256 balance;
     address owner;
 
@@ -194,7 +219,19 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     }
   }
 
-  function _isERC20(address account) internal view returns (bool){
+  function _doTokenTransaction(SubOrder subOrder, address from, address to) private  {
+     //confirm the token type and lock the funds in this contract
+    if (subOrder.interfaceID == _ERC20_ID) {
+      IERC20(subOrder.token).transferFrom(msg.sender, address(this), subOrder.quantity);
+    } else 
+    if (subOrder.interfaceID == _ERC721_ID) {
+      IERC721(subOrder.token).safeTransferFrom(msg.sender, address(this), subOrder.tokenId);
+    } else {
+      IERC1155(subOrder.token).safeTransferFrom(msg.sender, address(this), subOrder.tokenId, subOrder.quantity, '');
+    }
+  }
+
+  function _isERC20(address account) private view returns (bool){
     try IERC20(account).totalSupply() returns (uint256) {
       // If the call to totalSupply doesn't revert, it's likely an ERC-20 token.
       return true;
@@ -203,11 +240,11 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     }
   }
 
-  // function _isERC721(address account) internal view returns (bool){
+  // function _isERC721(address account) private view returns (bool){
   //   return ERC165Checker.supportsInterface(account, _ERC721_ID);
   // }
 
-  // function _isERC1155(address account) internal view returns (bool){
+  // function _isERC1155(address account) private view returns (bool){
   //   return ERC165Checker.supportsInterface(account, _ERC1155_ID);
   // }
 }
