@@ -39,6 +39,8 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     Canceled
   }
 
+  event StepCompleted(bytes32 indexed orderId, address indexed who, Status indexed newStatus);
+
   error InvalidToken(address tokenAddress);
   error MustBeTheCreator(address caller, address creator);
   error MustBeThePartner(address caller, address creator);
@@ -57,6 +59,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     _;
   }
 
+  //PRIVATE GETTERS
   function _getCreator(bytes32 orderId) private view returns (address) {
     return _orders[orderId].creator;
   }
@@ -65,14 +68,25 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     return _orders[orderId].partner;
   }
 
+  function _isERC20(address account) private view returns (bool){
+    try IERC20(account).totalSupply() returns (uint256) {
+      // If the call to totalSupply doesn't revert, it's likely an ERC-20 token.
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  //PUBLIC GETTERS
   function getOrderMembersById(bytes32 orderId) public view returns (address creator, address partner) {
     return (_orders[orderId].creator, _orders[orderId].partner);
   }
   
-  function getOrderByUser(address user, bytes32 orderId) public view returns (SubOrder memory subOrder) {
+  function getSubOrderByUser(address user, bytes32 orderId) public view returns (SubOrder memory subOrder) {
     return _orderOf[user][orderId];
   }
 
+  //PUBLIC CONTRACT LOGIC FUNCTIONS
   function createOrder(address token, uint256 id, uint256 quantity) public returns (bool) {
     bytes4 interfaceID = _getAndValidateInterfaceID(token);
     _checkIfHasSufficientBalance(msg.sender,token, id, quantity, interfaceID, false);
@@ -90,6 +104,8 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
       Status.ProposalSubmited
     );
     
+    emit StepCompleted(randomId, msg.sender, Status.ProposalSubmited);
+
     return true;
   }
 
@@ -110,6 +126,8 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
       quantity,
       Status.ProposalSubmited
     );
+
+    emit StepCompleted(orderId, msg.sender, Status.ProposalSubmited);
 
     return true;
   }
@@ -137,6 +155,8 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     //update the current state of the order
     _orderOf[msg.sender][orderId].individualStatus = Status.TokenLocked;
 
+    emit StepCompleted(orderId, msg.sender, Status.TokenLocked);
+
     return true;
   }
 
@@ -160,9 +180,12 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     _orderOf[msg.sender][orderId].individualStatus = Status.Completed;
     _orders[orderId].isActive = false;
 
+    emit StepCompleted(orderId, msg.sender, Status.Completed);
+
     return true;
   }
 
+  //PRIVATE CONTRACT LOGIC FUNCTIONS
   function _getAndValidateInterfaceID(address account) private view returns (bytes4){
     bytes4 interfaceID;
 
@@ -258,21 +281,4 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
 
     return true;
   }
-
-  function _isERC20(address account) private view returns (bool){
-    try IERC20(account).totalSupply() returns (uint256) {
-      // If the call to totalSupply doesn't revert, it's likely an ERC-20 token.
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  // function _isERC721(address account) private view returns (bool){
-  //   return ERC165Checker.supportsInterface(account, _ERC721_ID);
-  // }
-
-  // function _isERC1155(address account) private view returns (bool){
-  //   return ERC165Checker.supportsInterface(account, _ERC1155_ID);
-  // }
 }
