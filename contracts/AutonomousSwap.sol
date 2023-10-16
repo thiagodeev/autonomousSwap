@@ -75,8 +75,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
 
   function createOrder(address token, uint256 id, uint256 quantity) public returns (bool) {
     bytes4 interfaceID = _getAndValidateInterfaceID(token);
-    _checkIfHasSufficientBalance(token, id, quantity, interfaceID, false);
-    
+    _checkIfHasSufficientBalance(msg.sender,token, id, quantity, interfaceID, false);
     
     bytes32 randomId = 0xe0d4f6e915eb01068ecd79ce922236bf16c38b2d88cccffcbc57ed53ef3b74aa;
     _orders[randomId].creator = msg.sender;
@@ -100,7 +99,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     require(_getCreator(orderId) != msg.sender, 'You are already the creator of the order.');
 
     bytes4 interfaceID = _getAndValidateInterfaceID(token);
-    _checkIfHasSufficientBalance(token, id, quantity, interfaceID, false);
+    _checkIfHasSufficientBalance(msg.sender, token, id, quantity, interfaceID, false);
 
     _orders[orderId].partner = msg.sender;
 
@@ -121,15 +120,19 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     if (creator != msg.sender) revert MustBeTheCreator(msg.sender, creator);
 
     //verify the current state of the partner
-    Status partnerStatus = _orderOf[partner][orderId].individualStatus;
-    if (partnerStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(partner, partnerStatus, Status.ProposalSubmited);
+    SubOrder memory partnerSubOrder = _orderOf[msg.sender][orderId];
+    if (partnerSubOrder.individualStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(partner, partnerSubOrder.individualStatus, Status.ProposalSubmited);
+
+    //check if the partner allowed the contract
+    _checkIfHasSufficientBalance(partner, partnerSubOrder.token, partnerSubOrder.tokenId, partnerSubOrder.quantity, partnerSubOrder.interfaceID, true);
+
+    SubOrder memory creatorSubOrder = _orderOf[msg.sender][orderId];
 
     //verify the current state of the creator
-    SubOrder memory subOrder = _orderOf[msg.sender][orderId];
-    if (subOrder.individualStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(msg.sender, subOrder.individualStatus, Status.ProposalSubmited);
+    if (creatorSubOrder.individualStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(msg.sender, creatorSubOrder.individualStatus, Status.ProposalSubmited);
 
     //confirm the token type and lock the funds in this contract
-    _checkInterfaceIdAndDoTokenTransaction(subOrder, msg.sender, address(this), true);
+    _checkInterfaceIdAndDoTokenTransaction(creatorSubOrder, msg.sender, address(this), true);
 
     //update the current state of the order
     _orderOf[msg.sender][orderId].individualStatus = Status.TokenLocked;
@@ -183,56 +186,56 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     return interfaceID;
   }
 
-  function _checkIfHasSufficientBalance(address token, uint256 tokenId, uint256 quantity, bytes4 interfaceID, bool checkAllowance) private view returns (bool){
+  function _checkIfHasSufficientBalance(address approver, address token, uint256 tokenId, uint256 quantity, bytes4 interfaceID, bool checkAllowance) private view returns (bool){
     uint256 balance;
     address owner;
 
     if (interfaceID == _ERC20_ID) {
       if(checkAllowance){
-        balance = IERC20(token).allowance(msg.sender, address(this));
+        balance = IERC20(token).allowance(approver, address(this));
         if (balance >= quantity) {
           return true;
         } else {
-          revert ERC20InsufficientAllowance(msg.sender, balance, quantity);
+          revert ERC20InsufficientAllowance(approver, balance, quantity);
         }
       } else {
-        balance = IERC20(token).balanceOf(msg.sender);
+        balance = IERC20(token).balanceOf(approver);
         if (balance >= quantity) {
           return true;
         } else {
-          revert ERC20InsufficientBalance(msg.sender, balance, quantity);
+          revert ERC20InsufficientBalance(approver, balance, quantity);
         }
       }
     } else
     if (interfaceID == _ERC721_ID) {
       if(checkAllowance){
         owner = IERC721(token).getApproved(tokenId);
-        if (owner == msg.sender) {
+        if (owner == approver) {
           return true;
         } else {
-          revert ERC721InsufficientApproval(msg.sender, tokenId);
+          revert ERC721InsufficientApproval(approver, tokenId);
         }
       } else {
         owner = IERC721(token).ownerOf(tokenId);
-        if (owner == msg.sender) {
+        if (owner == approver) {
           return true;
         } else {
-          revert ERC721IncorrectOwner(msg.sender, tokenId, owner);
+          revert ERC721IncorrectOwner(approver, tokenId, owner);
         }
       }
     } else {
       if(checkAllowance){
-        if (IERC1155(token).isApprovedForAll(msg.sender, address(this))) {
+        if (IERC1155(token).isApprovedForAll(approver, address(this))) {
           return true;
         } else {
-          revert ERC1155MissingApprovalForAll(address(this),msg.sender);
+          revert ERC1155MissingApprovalForAll(address(this),approver);
         }
       } else {
-        balance = IERC1155(token).balanceOf(msg.sender, tokenId);
+        balance = IERC1155(token).balanceOf(approver, tokenId);
         if (balance >= quantity) {
           return true;
         } else {
-          revert ERC1155InsufficientBalance(msg.sender, balance, quantity, tokenId);
+          revert ERC1155InsufficientBalance(approver, balance, quantity, tokenId);
         }
       }
     }
