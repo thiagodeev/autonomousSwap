@@ -35,7 +35,8 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     Pending,
     ProposalSubmited,
     TokenLocked,
-    Completed
+    Completed,
+    Canceled
   }
 
   event StepCompleted(bytes32 indexed orderId, address indexed who, Status indexed newStatus);
@@ -183,6 +184,24 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     return true;
   }
 
+  function cancelOrder(bytes32 orderId) public isActive(orderId) returns (bool) {
+    address creator =  _getCreator(orderId);
+    //verify if the msg.sender is the creator
+    if (creator != msg.sender) revert MustBeTheCreator(msg.sender, creator);
+
+    SubOrder memory creatorSubOrder = _orderOf[creator][orderId];
+
+    //verify the current state of the creator to check if there are tokens to be refunded
+    if (creatorSubOrder.individualStatus == Status.TokenLocked) {
+      _checkInterfaceIdAndDoTokenTransaction(creatorSubOrder, address(this), msg.sender, false);
+    }
+
+    _orders[orderId].isActive = false;
+
+    emit StepCompleted(orderId, msg.sender, Status.Canceled);
+
+    return true;
+  }
 
   //PRIVATE CONTRACT LOGIC FUNCTIONS
   function _getAndValidateInterfaceID(address account) private view returns (bytes4){
