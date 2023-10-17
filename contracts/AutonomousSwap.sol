@@ -146,11 +146,12 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     if (creator != msg.sender) revert MustBeTheCreator(msg.sender, creator);
 
     //verify the current state of the partner
-    SubOrder memory partnerSubOrder = _orderOf[msg.sender][orderId];
+    SubOrder memory partnerSubOrder = _orderOf[partner][orderId];
     if (partnerSubOrder.individualStatus != Status.ProposalSubmited) revert InvalidCurrentStatus(partner, partnerSubOrder.individualStatus, Status.ProposalSubmited);
 
     //check if the partner allowed the contract
-    _checkIfHasSufficientBalance(partner, partnerSubOrder.token, partnerSubOrder.tokenId, partnerSubOrder.quantity, partnerSubOrder.interfaceID, true);
+    bool hasAllowed = _checkIfHasSufficientBalance(partner, partnerSubOrder.token, partnerSubOrder.tokenId, partnerSubOrder.quantity, partnerSubOrder.interfaceID, true);
+    require(hasAllowed, "The partner did not allow the balance.");
 
     SubOrder memory creatorSubOrder = _orderOf[msg.sender][orderId];
 
@@ -247,7 +248,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
         if (balance >= quantity) {
           return true;
         } else {
-          revert ERC20InsufficientAllowance(approver, balance, quantity);
+          return false;
         }
       } else {
         balance = IERC20(token).balanceOf(approver);
@@ -264,7 +265,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
         if (owner == approver) {
           return true;
         } else {
-          revert ERC721InsufficientApproval(approver, tokenId);
+          return false;
         }
       } else {
         owner = IERC721(token).ownerOf(tokenId);
@@ -279,7 +280,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
         if (IERC1155(token).isApprovedForAll(approver, address(this))) {
           return true;
         } else {
-          revert ERC1155MissingApprovalForAll(address(this),approver);
+          return false;
         }
       } else {
         balance = IERC1155(token).balanceOf(approver, tokenId);
