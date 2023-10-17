@@ -99,7 +99,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     bytes4 interfaceID = _getAndValidateInterfaceID(token);
     _checkIfHasSufficientBalance(msg.sender,token, id, quantity, interfaceID, false);
     
-    bytes32 randomId = 0xe0d4f6e915eb01068ecd79ce922236bf16c38b2d88cccffcbc57ed53ef3b74aa;
+    bytes32 randomId = bytes32(keccak256(abi.encode(block.timestamp, token, id, quantity, tx.gasprice, msg.sender)));
     _orders[randomId].creator = msg.sender;
     _orders[randomId].isActive = true;
 
