@@ -76,6 +76,15 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
     }
   }
 
+  //from https://ethereum.stackexchange.com/a/15642
+  function _isContract(address _addr) private view returns (bool isContract){
+  uint32 size;
+  assembly {
+    size := extcodesize(_addr)
+  }
+  return (size > 0);
+}
+
   //PUBLIC GETTERS
   function getOrderMembersById(bytes32 orderId) public view returns (address creator, address partner) {
     return (_orders[orderId].creator, _orders[orderId].partner);
@@ -110,7 +119,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
 
   function joinsOrder(bytes32 orderId, address token, uint256 id, uint256 quantity) public isActive(orderId) returns (bool){
     (address creator, address partner) =  getOrderMembersById(orderId);
-    require(partner != address(0), 'One address already joined this order.');
+    require(partner == address(0), 'An address already joined this order.');
     require(creator != msg.sender, 'You are already the creator of the order.');
 
     bytes4 interfaceID = _getAndValidateInterfaceID(token);
@@ -206,6 +215,7 @@ contract AutonomousSwap is ERC721Holder, ERC1155Holder{
   //PRIVATE CONTRACT LOGIC FUNCTIONS
   function _getAndValidateInterfaceID(address account) private view returns (bytes4){
     bytes4 interfaceID;
+    if(!_isContract(account)) revert InvalidToken(account);
 
     if (ERC165Checker.supportsERC165(account)){
       if(ERC165Checker.supportsERC165InterfaceUnchecked(account, _ERC721_ID)){
