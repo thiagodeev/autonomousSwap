@@ -1,9 +1,9 @@
 <script lang="ts">
   import { ethers, Eip1193Provider } from "ethers";
   import { signer } from "./lib/stores.js";
-  import Button from "./components/Button.svelte";
+  import Button from "./components/base/Button.svelte";
   import Background from "./components/Background.svelte";
-  import Card from "./components/Card.svelte";
+  import Card from "./components/base/Card.svelte";
   import CreateOrderCard from "./components/CreateOrderCard.svelte";
 
   async function connect(){
