@@ -4,6 +4,11 @@ coverage
 coverage.json
 typechain
 typechain-types
+/node_modules/
+/dist/
+/.vscode/
+.DS_Store
+
 
 # Hardhat files
 cache

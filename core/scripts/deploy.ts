@@ -1,0 +1,16 @@
+import { ethers } from "hardhat";
+
+async function main() {
+  const AutonomousSwap = await ethers.deployContract("AutonomousSwap");
+
+  await AutonomousSwap.waitForDeployment();
+
+  console.log("Contract deployed at ", await AutonomousSwap.getAddress());
+}
+
+// We recommend this pattern to be able to use async/await everywhere
+// and properly handle errors.
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
