@@ -1,21 +1,25 @@
 <script>
-  import { onMount } from "svelte";
 
   let tokenType;
-
   let tokenTypes = {
     ERC20: '0xec20ec20',
     ERC721: '0x80ac58cd',
     ERC1155: '0xd9b67a26'
   }
 
-  $: console.log(tokenType)
-  // export let orderInfo;
+  let subOrder = {
+    token: 0,
+    interfaceID: 0,
+    tokenId: 0,
+    quantity: 0,
+    individualStatus: 0,
+  };
+
 </script>
 
 
 <div>
-  <form>
+  <form on:submit|preventDefault>
     <div class="relative mb-12" >
       <select bind:value={tokenType}>
         <option value={tokenTypes.ERC20}>ERC20</option>
@@ -80,6 +84,7 @@
             <input
               type="text"
               id="quantityInput"
+              name="quantityInput"
               required
               class="peer h-8 w-full border-none bg-transparent p-0 placeholder-transparent focus:border-transparent focus:outline-none focus:ring-0 sm:text-sm"
               placeholder="Quantity"
@@ -99,10 +104,9 @@
 
     <!--Submit button-->
     <button
-      on:submit|preventDefault
       type="submit"
-      class="inline-block rounded bg-primary px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]">
-      Submit
+      class="inline-block rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500">
+        Submit
     </button>
   </form>
 </div>

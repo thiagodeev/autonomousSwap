@@ -1,19 +1,36 @@
 <script lang="ts">
-  import { ethers, Eip1193Provider } from "ethers";
-  import { signer } from "./lib/stores.js";
+  import { ethers } from "ethers";
+  import { signer, autonomousSwap } from "./lib/stores.js";
   import Button from "./components/base/Button.svelte";
   import Background from "./components/Background.svelte";
-  import Card from "./components/base/Card.svelte";
   import CreateOrderCard from "./components/CreateOrderCard.svelte";
+  import { onMount } from "svelte";
+  import AutonomousSwapJSON from '../core/artifacts/contracts/AutonomousSwap.sol/AutonomousSwap.json';
+
+
+
+  onMount(async () => {
+    const rpcLink = 'http://127.0.0.1:8545/';
+    const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+
+    const provider = new ethers.JsonRpcProvider(rpcLink);
+    const _autonomousSwap: AutonomousSwapContract = new ethers.Contract(contractAddress, AutonomousSwapJSON.abi, provider)
+
+    $autonomousSwap = _autonomousSwap;
+  })
 
   async function connect(){
     const provider = new ethers.BrowserProvider(window.ethereum);
     // It will prompt user for account connections if it isnt connected
-    const signer = await provider.getSigner();
-    console.log("Account:", await signer.getAddress());
+    const _signer = await provider.getSigner();
+    console.log("Account:", await _signer.getAddress());
 
-    return signer;
+    autonomousSwap.update((autonomousSwap) => autonomousSwap.connect(_signer))
+    console.log($autonomousSwap)
+
+    return _signer;
   }
+  
 </script>
 
 

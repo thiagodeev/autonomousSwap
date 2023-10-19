@@ -21,7 +21,8 @@
      */
     "allowJs": true,
     "checkJs": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
   },
   /**
    * Use globals.d.ts instead of compilerOptions.types
