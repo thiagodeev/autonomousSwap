@@ -1,9 +1,10 @@
 <script lang="ts">
   import { current_component } from "svelte/internal";
+  import { AddressLike, BigNumberish, ContractTransactionResponse, ethers } from "ethers";
+  import { autonomousSwap, creatorSubOrder, mainOrder, creatorState, generalState } from "../lib/stores.js";
+  import { CreatorState, GeneralState } from "../lib/enums.js";
   import Card from "./base/Card.svelte";
   import ChooseToken from "./ChooseToken.svelte";
-  import { autonomousSwap, creatorSubOrder, mainOrder } from "../lib/stores.js";
-  import { AddressLike, BigNumberish, ContractTransactionResponse, ethers } from "ethers";
 
 
   let _autonomousSwap: AutonomousSwapContract;
@@ -60,7 +61,8 @@
       return ({
         orderId: output.orderId,
         creator: output.who,
-        isActive: true
+        isActive: true,
+        isCreator: true
       })
     });
 
@@ -73,6 +75,9 @@
         individualStatus: output.newStatus
       })
     })
+
+    $creatorState = CreatorState.WaitingForPartnerJoin;
+    $generalState = GeneralState.OrderCreated;
   }
 
 </script>
@@ -80,8 +85,4 @@
 <Card>
   <h1 class="text-4xl font-bold text-slate-900 mb-8">Order creation</h1>
   <ChooseToken on:submit={onSubmit}/>
-
-  {#if $mainOrder != null}
-    <p>Your orderId is {$mainOrder.orderId}</p>
-  {/if}
 </Card>
