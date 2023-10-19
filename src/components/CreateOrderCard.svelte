@@ -2,7 +2,7 @@
   import { current_component } from "svelte/internal";
   import Card from "./base/Card.svelte";
   import ChooseToken from "./ChooseToken.svelte";
-  import { autonomousSwap } from "../lib/stores.js";
+  import { autonomousSwap, creatorSubOrder, mainOrder } from "../lib/stores.js";
   import { AddressLike, BigNumberish, ContractTransactionResponse, ethers } from "ethers";
 
 
@@ -44,18 +44,35 @@
 
     const transactionResponse: ContractTransactionResponse = await _autonomousSwap.createOrder(..._subOrder);
     const transactionReceipt = await transactionResponse.wait();
-    const test = transactionReceipt.logs[0] as ethers.Log;
-    const teste = {
-      test.top
+    const eventLog = transactionReceipt.logs[0] as ethers.EventLog;
+    // const eventFragment = eventLog.fragment as ((string | ethers.EventFragment) & (string | ethers.EventFragment));
+    const filter = {
+      topics: [...eventLog.topics],
+      data: eventLog.data
     }
+    const output = _autonomousSwap.interface.parseLog(filter).args;
 
+    // console.log(_autonomousSwap.interface.decodeEventLog(test.fragment as any, test.data, test.topics))
+    // console.log(_autonomousSwap.interface.parseLog(teste))
+    console.log(output)
 
-    // teste.logs.forEach((log) => {
-    //     console.log(_autonomousSwap.interface.decodeEventLog(log))
-    //     // console.log('Log data:', log.data);
-    //     // console.log('Log topics:', log.topics);
-    //   });
-    console.log(_autonomousSwap.interface.parseLog({}))
+    mainOrder.update(() => {
+      return ({
+        orderId: output.orderId,
+        creator: output.who,
+        isActive: true
+      })
+    });
+
+    creatorSubOrder.update(() => {
+      return ({
+        token,
+        interfaceID,
+        tokenId,
+        quantity,
+        individualStatus: output.newStatus
+      })
+    })
   }
 
 </script>
@@ -63,4 +80,8 @@
 <Card>
   <h1 class="text-4xl font-bold text-slate-900 mb-8">Order creation</h1>
   <ChooseToken on:submit={onSubmit}/>
+
+  {#if $mainOrder != null}
+    <p>Your orderId is {$mainOrder.orderId}</p>
+  {/if}
 </Card>

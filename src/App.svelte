@@ -7,8 +7,6 @@
   import { onMount } from "svelte";
   import AutonomousSwapJSON from '../core/artifacts/contracts/AutonomousSwap.sol/AutonomousSwap.json';
 
-
-
   onMount(async () => {
     const rpcLink = 'http://127.0.0.1:8545/';
     const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
@@ -30,6 +28,8 @@
 
     return _signer;
   }
+
+  let createNewOrder = false;
   
 </script>
 
@@ -49,7 +49,7 @@
           
           {:else}
             <div>
-                <a class="inline-flex justify-center whitespace-nowrap rounded-lg bg-indigo-500 px-3.5 py-2.5 text-sm font-medium text-white shadow-sm shadow-indigo-950/10 hover:bg-indigo-600 focus-visible:outline-none focus-visible:ring focus-visible:ring-indigo-300 dark:focus-visible:ring-slate-600 transition-colors duration-150 group" href="#0">
+                <a on:click={() => createNewOrder = true} class="inline-flex justify-center whitespace-nowrap rounded-lg bg-indigo-500 px-3.5 py-2.5 text-sm font-medium text-white shadow-sm shadow-indigo-950/10 hover:bg-indigo-600 focus-visible:outline-none focus-visible:ring focus-visible:ring-indigo-300 dark:focus-visible:ring-slate-600 transition-colors duration-150 group" href="#0">
                   Create a new Swap Order <span class="tracking-normal text-indigo-300 group-hover:translate-x-0.5 transition-transform duration-150 ease-in-out ml-1">-&gt;</span>
                 </a>
             </div>
@@ -61,6 +61,8 @@
           {/if}
         </div>
     </div>
-    <CreateOrderCard />
+    {#if createNewOrder == true}
+      <CreateOrderCard />
+    {/if}
   </Background>
 <!-- #060213 -->
