@@ -1,19 +1,26 @@
 <script lang="ts">
   import { ethers } from "ethers"; 
-  import { signer, mainOrder, creatorSubOrder, autonomousSwap, generalState, creatorState, partnerState } from "../lib/stores.js";
-  import FirstStep from "./steps/FirstStep.svelte";
+  import { signer, mainOrder, creatorSubOrder, autonomousSwap, generalState, partnerState } from "../lib/stores.js";
+  import { PartnerState } from "../lib/enums.js";
+  import CreationStep from "./steps/CreationStep.svelte";
 </script>
 
 <div>
-  <h1>PARTNER SECTION</h1>
+  <h1>PARTNER: {$mainOrder.partner}</h1>
   {#if !$mainOrder.isCreator}
-    <!-- <p>{$creatorSubOrder.token}</p>
-    <p>{$creatorSubOrder.interfaceID}</p>
-    <p>{$creatorSubOrder.tokenId}</p>
-    <p>{$creatorSubOrder.quantity}</p>
-    <p>{$creatorSubOrder.individualStatus}</p>
-    <p></p> -->
-    <FirstStep/>
+    {#if $partnerState == PartnerState.WaitingFirstConfirmation}
+      <CreationStep/>
+    {:else if $partnerState == PartnerState.AllowingAutonomousSwap}
+      <p>teste2</p>
+    {:else if $partnerState == PartnerState.WaitingCreatorAllowance}
+      <p>teste3</p>
+    {:else if $partnerState == PartnerState.WaitingCreatorsFunding}
+      <p>teste4</p>
+    {:else if $partnerState == PartnerState.SendingTokens}
+      <p>teste5</p>
+    {:else if $partnerState == PartnerState.Completed}
+      <p>teste6</p>
+    {/if}
     
   {:else}
     <p>WAITING</p>

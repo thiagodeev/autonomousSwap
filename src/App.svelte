@@ -27,6 +27,8 @@
 
   <Background>
     <Welcome />
+
+    <!-- Firt phase -->
     {#if $generalState == GeneralState.CreatingOrder}
       <CreateOrderCard />
     {/if}
@@ -35,6 +37,7 @@
       <JoinsOrder/>
     {/if}
     
+    <!-- Second phase -->
     {#if $mainOrder != null}
       <SwapSection/>
     {/if}

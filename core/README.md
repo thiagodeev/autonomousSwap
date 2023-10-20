@@ -1,1 +1,4 @@
 # autonomousSwap
+
+Mantle deployment: 0x89E93e36A9ac7059a7138F7b3cac85F3Ebc8725f
+Mantle flatten deployment: 0x1DD666CbBD10996584C9Cdce6518df0274BaEFD3

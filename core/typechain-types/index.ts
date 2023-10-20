@@ -24,5 +24,5 @@ export type { ERC165 } from "./@openzeppelin/contracts/utils/introspection/ERC16
 export { ERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/ERC165__factory";
 export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC165";
 export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
-export type { AutonomousSwap } from "./contracts/AutonomousSwap";
-export { AutonomousSwap__factory } from "./factories/contracts/AutonomousSwap__factory";
+export type { AutonomousSwap } from "./contracts/AutonomousSwap_flatten.sol/AutonomousSwap";
+export { AutonomousSwap__factory } from "./factories/contracts/AutonomousSwap_flatten.sol/AutonomousSwap__factory";
