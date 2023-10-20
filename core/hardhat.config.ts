@@ -17,6 +17,11 @@ const config: HardhatUserConfig = {
       url: "https://sepolia-rpc.scroll.io/" || "",
       accounts: [process.env.ACCOUNT_PRIVATE_KEY!]
     },
+    calibrationnet: {
+      chainId: 314159,
+      url: "https://api.calibration.node.glif.io/rpc/v1",
+      accounts: [process.env.ACCOUNT_PRIVATE_KEY!]
+  },
   },
   etherscan: {
     apiKey: {

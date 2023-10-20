@@ -9,6 +9,7 @@
     // It will prompt user for account connections if it isnt connected
     const _signer = await provider.getSigner();
     console.log("Account:", await _signer.getAddress());
+    console.log("Token:", '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9');
 
     autonomousSwap.update((autonomousSwap) => autonomousSwap.connect(_signer))
     console.log($autonomousSwap)

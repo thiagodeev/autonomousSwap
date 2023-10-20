@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { ethers } from "ethers"; 
-  import { signer, mainOrder, creatorSubOrder, partnerSubOrder, autonomousSwap, generalState, creatorState, partnerState } from "../../lib/stores.js";
+  import { creatorSubOrder, partnerSubOrder } from "../../lib/stores.js";
   import Button from "../base/Button.svelte";
   export let isCreator = false;
 
