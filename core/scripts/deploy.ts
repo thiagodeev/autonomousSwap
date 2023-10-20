@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const AutonomousSwap = await ethers.deployContract("contracts/AutonomousSwap_flattened.sol:AutonomousSwap", { gasLimit: 0x1000000});
+  const AutonomousSwap = await ethers.deployContract("contracts/AutonomousSwap_flattened.sol:AutonomousSwap");
 
   await AutonomousSwap.waitForDeployment();
 

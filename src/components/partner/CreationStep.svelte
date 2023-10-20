@@ -2,7 +2,7 @@
   import { ethers } from "ethers"; 
   import { signer, mainOrder, creatorSubOrder, partnerSubOrder, autonomousSwap, generalState, creatorState, partnerState } from "../../lib/stores.js";
 
-  export let isCreator = false;
+  export let isCreator;
 
   let tokenTypes = {
     ERC20: '0xec20ec20',

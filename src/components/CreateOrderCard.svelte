@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { current_component } from "svelte/internal";
+  import { current_component, onDestroy } from "svelte/internal";
   import { AddressLike, BigNumberish, ContractTransactionResponse, ethers } from "ethers";
   import { autonomousSwap, creatorSubOrder, mainOrder, creatorState, generalState } from "../lib/stores.js";
   import { CreatorState, GeneralState } from "../lib/enums.js";
@@ -8,9 +8,11 @@
 
 
   let _autonomousSwap: AutonomousSwapContract;
-  autonomousSwap.subscribe((value) => {
+  const unsubscribe = autonomousSwap.subscribe((value) => {
     _autonomousSwap = value;
   })
+
+	onDestroy(unsubscribe);
 
   let tokenTypes = {
     ERC20: '0xec20ec20',

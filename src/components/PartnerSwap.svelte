@@ -2,7 +2,7 @@
   import { ethers } from "ethers"; 
   import { signer, mainOrder, creatorSubOrder, autonomousSwap, generalState, partnerState } from "../lib/stores.js";
   import { PartnerState } from "../lib/enums.js";
-  import CreationStep from "./steps/CreationStep.svelte";
+  import CreationStep from "./partner/CreationStep.svelte";
 </script>
 
 <div>

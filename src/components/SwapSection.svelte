@@ -4,23 +4,14 @@
   import { CreatorState, GeneralState } from "../lib/enums.js";
   import { onMount } from "svelte";
   import Card from "./base/Card.svelte";
-  import CreatorSection from "./CreatorSection.svelte";
-  import PartnerSection from "./PartnerSection.svelte";
 
-
-  onMount(async () => {
-
-  })
-
-  
 </script>
 
 <Card>
   <div>
-    <h1>{$mainOrder.orderId}</h1>
+    <h1 class="mb-10" >{$mainOrder.orderId}</h1>
     <div class="flex justify-around	">
-      <CreatorSection/>
-      <PartnerSection/>
+      <slot></slot>
     </div>
   </div>
 </Card>

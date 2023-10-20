@@ -6,9 +6,9 @@
   import Welcome from "./components/Welcome.svelte";
   import CreateOrderCard from "./components/CreateOrderCard.svelte";
   import { onMount } from "svelte";
-  import AutonomousSwapJSON from '../core/artifacts/contracts/AutonomousSwap.sol/AutonomousSwap.json';
-  import SwapSection from "./components/SwapSection.svelte";
+  import AutonomousSwapJSON from '../core/artifacts/contracts/AutonomousSwap_flattened.sol/AutonomousSwap.json';
   import JoinsOrder from "./components/JoinsOrder.svelte";
+  import CreatorSwap from "./components/CreatorSwap.svelte";
 
 
   onMount(async () => {
@@ -39,7 +39,9 @@
     
     <!-- Second phase -->
     {#if $mainOrder != null}
-      <SwapSection/>
+      {#if $mainOrder.isCreator}
+        <CreatorSwap/>
+      {/if}
     {/if}
 
   </Background>

@@ -8,8 +8,31 @@ const config: HardhatUserConfig = {
     mantleTest: {
       url: "https://rpc.testnet.mantle.xyz", // testnet
       accounts: [process.env.ACCOUNT_PRIVATE_KEY!]
-    }
-},
+    },
+    polygonZK: {
+      url: "https://rpc.public.zkevm-test.net", // testnet
+      accounts: [process.env.ACCOUNT_PRIVATE_KEY!]
+    },
+    scrollSepolia: {
+      url: "https://sepolia-rpc.scroll.io/" || "",
+      accounts: [process.env.ACCOUNT_PRIVATE_KEY!]
+    },
+  },
+  etherscan: {
+    apiKey: {
+      scrollSepolia: 'abc',
+    },
+    customChains: [
+      {
+        network: 'scrollSepolia',
+        chainId: 534351,
+        urls: {
+          apiURL: 'https://sepolia-blockscout.scroll.io/api',
+          browserURL: 'https://sepolia-blockscout.scroll.io/',
+        },
+      },
+    ],
+  },
 };
 
 export default config;
