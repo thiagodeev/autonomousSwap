@@ -2,6 +2,7 @@
 =====================================================
 
 ***Note: The Smart Contract is located at: core/contracts***
+***Note: At the moment, the front-end only works on the Sepolia AutonomousSwap deployed instance (needs to change rpcUrl and contract addres in the js files to work in other networks).***
 
 When you want to negotiate something with someone, don't you feel afraid of being the first to give/send and being deceived by the other party, who might run away without fulfilling the agreement?
 The solution for this case in token transfers is: AutonomousSwap.
