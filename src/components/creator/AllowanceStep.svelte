@@ -20,36 +20,44 @@
     ERC1155: '0xd9b67a26'
   };
   let interfaceID;
-  let interval1;
-  let interval2;
 
-  
   if (isCreator){
     interfaceID = $creatorSubOrder.interfaceID;
-    
-    interval1 = setInterval( async () => {
-      let response = await isAllowed($creatorSubOrder.token, $mainOrder.creator, interfaceID, $creatorSubOrder.quantity, $creatorSubOrder.tokenId)
-      if (response) creatorAllowance = true;
-      console.log(partnerAllowance)
-    }, 1000);
-    
+    creatorResponse()
   } else {
     interfaceID = $partnerSubOrder.interfaceID;
-    
-    interval2 = setInterval( async () => {
-      let response = await isAllowed($partnerSubOrder.token, $mainOrder.partner, interfaceID, $partnerSubOrder.quantity, $partnerSubOrder.tokenId)
-      if (response) partnerAllowance = true;
-      console.log(partnerAllowance)
-    }, 1000);
+    partnerResponse()
   }
-  
-  if (partnerAllowance) {clearInterval(interval1); $creatorState = CreatorState.WaitingPartnerAllowance}
-  if (creatorAllowance) {clearInterval(interval2); $partnerState = PartnerState.WaitingCreatorAllowance}
 
-  // onMount(async ()=>{
-//   creatorAllowance = await isAllowed($creatorSubOrder.token, interfaceID, $creatorSubOrder.quantity, $creatorSubOrder.tokenId)
-//   console.log(creatorAllowance)
-// })
+
+  async function creatorResponse(){
+    if (creatorAllowance) return;
+    let response = await isAllowed($creatorSubOrder.token, $mainOrder.creator, interfaceID, $creatorSubOrder.quantity, $creatorSubOrder.tokenId)
+    console.log(response)
+    if (response) {
+      creatorAllowance = true;
+      $creatorState = CreatorState.WaitingPartnerAllowance;
+    }
+    console.log(partnerAllowance)
+
+    setTimeout(creatorResponse, 1000);
+  }
+
+  async function partnerResponse(){
+    if (partnerAllowance) return;
+    let response = await isAllowed($partnerSubOrder.token, $mainOrder.partner, interfaceID, $partnerSubOrder.quantity, $partnerSubOrder.tokenId)
+    console.log(response)
+    if (response) {
+      partnerAllowance = true;
+      $partnerState = PartnerState.WaitingCreatorAllowance;
+    }
+    console.log(partnerAllowance)
+
+    setTimeout(partnerResponse, 1000);
+  }
+
+
+
   async function isAllowed(tokenAddress, owner, interfaceID, quantity, tokenId):Promise<boolean> {
     console.log(tokenAddress, interfaceID, quantity, tokenId)
     let contract: IERC20 & IERC721 & IERC1155 & ethers.BaseContract;
@@ -122,13 +130,13 @@
     }
   }
 
-
+  $: console.log(creatorAllowance, partnerAllowance)
 </script>
 
 
 {#if isCreator}
   {#if creatorAllowance}
-    <p>APROVADO CARAMBA</p>
+    <p>APROVADO CARAMBAaaaaa</p>
   {:else}
     <Button on:click={() => requestAllowance($creatorSubOrder.token)}>Give Allowance</Button>
   {/if}
@@ -136,9 +144,6 @@
 {:else}
   {#if partnerAllowance}
   <p>APROVADO CARAMBA</p>
-    {#if creatorAllowance && partnerAllowance}
-      <Button on:click>Next Step</Button>
-    {/if}
   {:else}
   Awaiting Allowance ...
   {/if}

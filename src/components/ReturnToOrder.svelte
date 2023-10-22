@@ -63,7 +63,16 @@
         })
       });
 
-    } else
+      if ($creatorSubOrder.individualStatus == 1) {
+        $creatorState = CreatorState.AllowingAutonomousSwap;
+        $partnerState = PartnerState.AllowingAutonomousSwap;
+      } else
+      if ($creatorSubOrder.individualStatus == 2) {
+        $creatorState = CreatorState.WaitingPartnersTransfer;
+        $partnerState = PartnerState.WaitingCreatorsFunding;
+      }
+      $generalState = GeneralState.OrderCreated;
+      } else
     if (partner == _signer) {
       let _creatorSubOrder = await _autonomousSwap.getSubOrderByUser(creator, orderId);
       let _partnerSubOrder = await _autonomousSwap.getSubOrderByUser(partner, orderId);
@@ -100,64 +109,19 @@
           isCreator: false
         })
       });
+
+      if ($partnerSubOrder.individualStatus == 1) {
+        $creatorState = CreatorState.AllowingAutonomousSwap;
+        $partnerState = PartnerState.AllowingAutonomousSwap;
+      }
+      $generalState = GeneralState.OrderJoined;
+      
     } else {
       error = "Invalid orderId";
       console.log(error)
       throw new Error(error);
       return
     }
-
-    
-    console.log($mainOrder)
-    console.log($creatorSubOrder)
-    console.log($partnerSubOrder)
-    
-    if ($creatorSubOrder.)
-
-
-    // let _subOrder: [BytesLike, AddressLike, BigNumberish, BigNumberish];
-    // _subOrder = [
-    //   orderId,
-    //   token,
-    //   tokenId,
-    //   quantity
-    // ];
-
-    // const transactionResponse: ContractTransactionResponse = await _autonomousSwap.joinsOrder(..._subOrder);
-    // const transactionReceipt = await transactionResponse.wait();
-    // const eventLog = transactionReceipt.logs[0] as ethers.EventLog;
-    // const filter = {
-    //   topics: [...eventLog.topics],
-    //   data: eventLog.data
-    // }
-    // const logOutput = _autonomousSwap.interface.parseLog(filter).args;
-    // // console.log(logOutput)
-
-    // let { creator, } = await _autonomousSwap.getOrderMembersById(logOutput.orderId as BytesLike);
-    // console.log(creator)
-
-    // mainOrder.update(() => {
-    //   return ({
-    //     orderId: logOutput.orderId,
-    //     creator,
-    //     partner: logOutput.who,
-    //     isActive: true,
-    //     isCreator: false
-    //   })
-    // });
-
-    // partnerSubOrder.update(() => {
-    //   return ({
-    //     token,
-    //     interfaceID,
-    //     tokenId,
-    //     quantity,
-    //     individualStatus: logOutput.newStatus
-    //   })
-    // })
-
-    // $partnerState = PartnerState.WaitingFirstConfirmation;
-    // $generalState = GeneralState.OrderJoined;
   }
 
 </script>

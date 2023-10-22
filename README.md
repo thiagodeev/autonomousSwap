@@ -57,9 +57,9 @@ That is it! Done :D
 =====================================================
 
 For you to test:
-Random ERC20 token: 0x2E6dd9771E607259F9F52AcD2A99Ba7A6483952d
-Random ERC721 token: 0xb829d0931FE3eFDE1E5E64BF8719ec4DFF51c9Da
-Random ERC1155 token: 0x97C998bDbBc40a257FdE53e781de949c300F5b20
+Random ERC20 token: 0x2E6dd9771E607259F9F52AcD2A99Ba7A6483952d  
+Random ERC721 token: 0xb829d0931FE3eFDE1E5E64BF8719ec4DFF51c9Da  
+Random ERC1155 token: 0x97C998bDbBc40a257FdE53e781de949c300F5b20  
 
 
 **Deployed links:**
@@ -76,7 +76,7 @@ Verification link: https://sepolia.etherscan.io/address/0x9a642b656ea04452aba6e8
 **Scroll** flattened deployment: 0xcf1D6e6a704b0717D19dD4740CA0aD7aaE2415AD  
   Verification link: https://sepolia-blockscout.scroll.io/address/0xcf1D6e6a704b0717D19dD4740CA0aD7aaE2415AD/contracts#address-tabs  
   Verification link: https://sepolia.scrollscan.dev/address/0xcf1d6e6a704b0717d19dd4740ca0ad7aae2415ad#code  
-  
+
 **Filecoin** flattened deployment: 0xcf1D6e6a704b0717D19dD4740CA0aD7aaE2415AD  
   Verification link (solidity 8.19): https://calibration.filfox.info/en/address/0xa5747753Ef82F9140c7C05C6179bA7a5e86eB345?t=3  
 

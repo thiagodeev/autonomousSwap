@@ -32,6 +32,11 @@
     $autonomousSwap = _autonomousSwap;
   })
 
+  mainOrder.update(() => {
+        return ({
+          finalTransaction: null
+        })
+      });
   
 </script>
 
