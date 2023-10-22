@@ -30,8 +30,8 @@
       let _creatorSubOrder = await _autonomousSwap.getSubOrderByUser(creator, orderId);
       let _partnerSubOrder = await _autonomousSwap.getSubOrderByUser(partner, orderId);
       
-      // console.log(_creatorSubOrder)
-      // console.log(_partnerSubOrder)
+      console.log(_creatorSubOrder)
+      console.log(_partnerSubOrder)
 
       creatorSubOrder.update(() => {
         return ({
@@ -64,12 +64,22 @@
       });
 
       if ($creatorSubOrder.individualStatus == 1) {
-        $creatorState = CreatorState.AllowingAutonomousSwap;
-        $partnerState = PartnerState.AllowingAutonomousSwap;
+        if ($partnerSubOrder.individualStatus == 0) {
+          $creatorState = CreatorState.WaitingForPartnerJoin;
+          // $partnerState = PartnerState.WaitingFirstConfirmation;
+        } else {
+          $creatorState = CreatorState.AllowingAutonomousSwap;
+          $partnerState = PartnerState.AllowingAutonomousSwap;
+        }
       } else
       if ($creatorSubOrder.individualStatus == 2) {
-        $creatorState = CreatorState.WaitingPartnersTransfer;
-        $partnerState = PartnerState.WaitingCreatorsFunding;
+        if ($partnerSubOrder.individualStatus == 3) {
+          $creatorState = CreatorState.Completed;
+          $partnerState = PartnerState.Completed;
+        } else {
+          $creatorState = CreatorState.WaitingPartnersTransfer;
+          $partnerState = PartnerState.WaitingCreatorsFunding;
+        }
       }
       $generalState = GeneralState.OrderCreated;
       } else

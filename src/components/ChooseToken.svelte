@@ -23,14 +23,22 @@
 <div>
   <form on:submit|preventDefault>
     <div class="relative mb-12" >
-      <select bind:value={tokenType}>
+      <label for="HeadlineAct" class="block text-sm font-medium text-gray-900">
+        Select the token type:
+      </label>
+
+      <select 
+      name="HeadlineAct"
+      id="HeadlineAct"
+      
+      bind:value={tokenType}>
         <option value={tokenTypes.ERC20}>ERC20</option>
         <option value={tokenTypes.ERC721}>ERC721</option>
         <option value={tokenTypes.ERC1155}>ERC1155</option>
       </select>
 
       <!-- Contract Address -->
-      <div class="relative mb-3">
+      <div class="relative mb-3 mt-3">
         <label
         for="contractAddressId"
         class="relative block overflow-hidden rounded-md border border-gray-200 px-3 pt-3 shadow-sm focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600"

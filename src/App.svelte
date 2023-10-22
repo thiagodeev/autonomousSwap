@@ -42,7 +42,10 @@
 
 
   <Background>
-    <Welcome />
+    {#if $generalState <= 1}
+      <Welcome />
+      
+    {/if}
 
     <!-- Firt phase -->
     {#if $generalState == GeneralState.CreatingOrder}

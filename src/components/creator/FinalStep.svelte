@@ -4,6 +4,7 @@
   import Button from "../base/Button.svelte";
   import { ContractTransactionResponse, ethers } from "ethers";
   import { onMount, onDestroy } from "svelte";
+  import Loader from "../base/Loader.svelte";
   
   let _autonomousSwap: AutonomousSwapContract;
   const unsubscribe = autonomousSwap.subscribe((value) => {
@@ -47,15 +48,16 @@
 
 {#if isCreator}
   {#if creatorFinished}
-    <p>AGORA É SÓ ESPERAR PAE</p>
+    <p>Finished! Now, just await for the partner.</p>
   {:else}
     <Button on:click={() => transferFundsToSwap()}>Send Funds</Button>
   {/if}
 
 {:else}
   {#if partnerFinished}
-  <p>TERMINOOOUU!!!!!!!!!!</p>
+  <p>Finished!</p>
   {:else}
   Awaiting transaction ...
+  <Loader/>
   {/if}
 {/if}

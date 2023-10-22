@@ -9,3 +9,4 @@ export const autonomousSwap = writable(null);
 export const generalState = writable(null);
 export const creatorState = writable(null);
 export const partnerState = writable(null);
+export const steps = writable(0)

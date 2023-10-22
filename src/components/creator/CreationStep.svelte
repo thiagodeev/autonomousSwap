@@ -10,46 +10,66 @@
   }
 
   let tokenType, interfaceID;
-  $: _subOrder = {
-    token: '',
-    quantity: '',
-    tokenId: ''
-  };
-  if (isCreator) {
-    [tokenType, interfaceID] = Object.entries(tokenTypes).find((element) => element[1] == $creatorSubOrder.interfaceID);
-    _subOrder = {
-      token: $creatorSubOrder.token,
-      quantity: $creatorSubOrder.quantity,
-      tokenId: $creatorSubOrder.tokenId
-    }
+  let _subOrder;
 
-    console.log(_subOrder)
-  } else {
-    [tokenType, interfaceID] = Object.entries(tokenTypes).find((element) => element[1] == $partnerSubOrder.interfaceID);
-    _subOrder = {
-      token: $partnerSubOrder.token,
-      quantity: $partnerSubOrder.quantity,
-      tokenId: $partnerSubOrder.tokenId
+  $: {
+    if (isCreator) {
+      [tokenType, interfaceID] = Object.entries(tokenTypes).find((element) => element[1] == $creatorSubOrder.interfaceID);
+      _subOrder = {
+        token: $creatorSubOrder.token,
+        quantity: $creatorSubOrder.quantity,
+        tokenId: $creatorSubOrder.tokenId
+      }
+  
+      console.log(_subOrder)
+    } else {
+      [tokenType, interfaceID] = Object.entries(tokenTypes).find((element) => element[1] == $partnerSubOrder.interfaceID);
+      _subOrder = {
+        token: $partnerSubOrder.token,
+        quantity: $partnerSubOrder.quantity,
+        tokenId: $partnerSubOrder.tokenId
+      }
+      console.log(_subOrder)
     }
-    console.log(_subOrder)
   }
 
 
 </script>
+<div class="flow-root">
 
-<div>
-  <p>Token address: {_subOrder.token}</p>
-  <p>Token type: {tokenType}</p>
-  {#if interfaceID == tokenTypes.ERC20}
-    <p>Quantity: {_subOrder.quantity}</p>
-  {:else if interfaceID == tokenTypes.ERC721}
-    <p>Token ID: {_subOrder.tokenId}</p>
-  {:else }
-    <p>Token ID: {_subOrder.tokenId}</p>
-    <p>Quantity: {_subOrder.quantity}</p>
-  {/if}
+  <dl class="-my-3 divide-y divide-gray-100 text-sm">
+    <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
+      <dt class="font-medium text-gray-900">Token address:</dt>
+      <dd class="text-gray-700 sm:col-span-2">{_subOrder.token}</dd>
+    </div>
+    <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
+      <dt class="font-medium text-gray-900">Token type:</dt>
+      <dd class="text-gray-700 sm:col-span-2">{tokenType}</dd>
+    </div>
+
+    {#if interfaceID == tokenTypes.ERC20}
+    <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
+      <dt class="font-medium text-gray-900">Quantity:</dt>
+      <dd class="text-gray-700 sm:col-span-2">{_subOrder.quantity}</dd>
+    </div>
+    {:else if interfaceID == tokenTypes.ERC721}
+    <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
+      <dt class="font-medium text-gray-900">Token ID:</dt>
+      <dd class="text-gray-700 sm:col-span-2">{_subOrder.tokenId}</dd>
+    </div>
+    {:else }
+    <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
+      <dt class="font-medium text-gray-900">Token ID:</dt>
+      <dd class="text-gray-700 sm:col-span-2">{_subOrder.tokenId}</dd>
+    </div>
+    <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-3 sm:gap-4">
+      <dt class="font-medium text-gray-900">Quantity:</dt>
+      <dd class="text-gray-700 sm:col-span-2">{_subOrder.quantity}</dd>
+    </div>
+    {/if}
+  </dl>
 </div>
 
 {#if !isCreator}
-  <Button on:click>Next Step</Button>
+  <Button isStep={true} on:click>Next Step</Button>
 {/if}

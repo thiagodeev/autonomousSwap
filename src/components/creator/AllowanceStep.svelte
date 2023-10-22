@@ -8,6 +8,7 @@
   import * as IERC1155json from '../../assets/IERC1155.json';
   import { ethers } from "ethers";
   import { onMount } from "svelte";
+  import Loader from "../base/Loader.svelte";
   
   
   export let isCreator = false;
@@ -136,15 +137,16 @@
 
 {#if isCreator}
   {#if creatorAllowance}
-    <p>APROVADO CARAMBAaaaaa</p>
+    <p>Allowance approved!</p>
   {:else}
     <Button on:click={() => requestAllowance($creatorSubOrder.token)}>Give Allowance</Button>
   {/if}
 
 {:else}
   {#if partnerAllowance}
-  <p>APROVADO CARAMBA</p>
+  <p>Allowance approved!</p>
   {:else}
   Awaiting Allowance ...
+  <Loader></Loader>
   {/if}
 {/if}

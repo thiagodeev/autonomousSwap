@@ -2,6 +2,7 @@
   import { PartnerState } from "../../lib/enums.js";
   import { autonomousSwap, mainOrder, partnerSubOrder, partnerState } from "../../lib/stores.js";
   import { onDestroy } from "svelte";
+  import Loader from "../base/Loader.svelte";
   
   let _autonomousSwap: AutonomousSwapContract;
   const unsubscribe = autonomousSwap.subscribe((value) => {
@@ -32,7 +33,11 @@
   });
 </script>
 
-<div>
-  <p>WAITING THE</p>
-  <slot></slot>
+<div class="relative flex flex-col">
+  <Loader>
+    <div>
+      <p>Waiting the </p>
+      <slot></slot>
+    </div>
+  </Loader>
 </div>
