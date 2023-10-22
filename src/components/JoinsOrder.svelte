@@ -1,7 +1,7 @@
 <script lang="ts">
   import { current_component } from "svelte/internal";
   import { AddressLike, BytesLike, BigNumberish, ContractTransactionResponse, ethers } from "ethers";
-  import { autonomousSwap, partnerSubOrder, mainOrder, creatorState, generalState, partnerState } from "../lib/stores.js";
+  import { autonomousSwap, partnerSubOrder, mainOrder, creatorState, generalState, creatorSubOrder, partnerState } from "../lib/stores.js";
   import { CreatorState, GeneralState, PartnerState } from "../lib/enums.js";
   import Card from "./base/Card.svelte";
   import ChooseToken from "./ChooseToken.svelte";
@@ -59,7 +59,19 @@
     // console.log(logOutput)
 
     let { creator, } = await _autonomousSwap.getOrderMembersById(logOutput.orderId as BytesLike);
-    console.log(creator)
+    // console.log(creator)
+
+    let _creatorSubOrder = await _autonomousSwap.getSubOrderByUser(creator, orderId);
+
+    creatorSubOrder.update(() => {
+      return ({
+        token: _creatorSubOrder.token,
+        interfaceID: _creatorSubOrder.interfaceID,
+        tokenId: _creatorSubOrder.tokenId,
+        quantity: _creatorSubOrder.quantity,
+        individualStatus: _creatorSubOrder.individualStatus
+      })
+    })
 
     mainOrder.update(() => {
       return ({
@@ -80,7 +92,7 @@
         individualStatus: logOutput.newStatus
       })
     })
-
+    $creatorState = CreatorState.WaitingForPartnerJoin;
     $partnerState = PartnerState.WaitingFirstConfirmation;
     $generalState = GeneralState.OrderJoined;
   }

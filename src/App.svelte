@@ -10,6 +10,7 @@
   import JoinsOrder from "./components/JoinsOrder.svelte";
   import CreatorSwap from "./components/CreatorSwap.svelte";
   import ReturnToOrder from "./components/ReturnToOrder.svelte";
+  import PartnerSwap from "./components/PartnerSwap.svelte";
 
 
   // onMount(async () => {
@@ -31,12 +32,6 @@
 
     $autonomousSwap = _autonomousSwap;
   })
-
-  mainOrder.update(() => {
-        return ({
-          finalTransaction: null
-        })
-      });
   
 </script>
 
@@ -64,6 +59,8 @@
     {#if $mainOrder != null}
       {#if $mainOrder.isCreator}
         <CreatorSwap/>
+        {:else}
+        <PartnerSwap/>
       {/if}
     {/if}
 

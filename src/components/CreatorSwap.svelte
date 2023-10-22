@@ -3,13 +3,13 @@
   import { signer, mainOrder, creatorSubOrder, autonomousSwap, generalState, creatorState, partnerState } from "../lib/stores.js";
   import { CreatorState, PartnerState } from "../lib/enums.js";
   import CreationStep from "./creator/CreationStep.svelte";
-  import Teste from "./creator/Teste.svelte";
   import SwapSection from "./SwapSection.svelte";
   import WaitingJoin from "./creator/WaitingJoin.svelte";
   import { onMount, onDestroy } from "svelte";
   import AllowanceStep from "./creator/AllowanceStep.svelte";
   import Button from "./base/Button.svelte";
   import FinalStep from "./creator/FinalStep.svelte";
+  import CancelButton from "./creator/CancelButton.svelte";
 
   
 </script>
@@ -18,7 +18,7 @@
   <!-- {#if $mainOrder.finalTransaction == null} -->
   {#if !($partnerState == PartnerState.Completed && $creatorState == CreatorState.Completed)}
     <div>
-      <h1 class="pb-5"><strong>Creator:</strong> {$mainOrder.creator}</h1>
+      <h1 class="pb-5 relative"> <CancelButton/> <strong class="ml-1">Creator:</strong> {$mainOrder.creator}</h1>
       <hr class="mb-5 h-0.5 bg-black">
       {#if $creatorState == CreatorState.WaitingForPartnerJoin}
           <CreationStep isCreator={true}/>

@@ -1,28 +1,57 @@
 <script lang="ts">
-  import { ethers } from "ethers"; 
-  import { signer, mainOrder, creatorSubOrder, autonomousSwap, generalState, partnerState } from "../lib/stores.js";
-  import { PartnerState } from "../lib/enums.js";
+  import { signer, mainOrder, creatorSubOrder, autonomousSwap, generalState, creatorState, partnerState } from "../lib/stores.js";
+  import { CreatorState, PartnerState } from "../lib/enums.js";
   import CreationStep from "./partner/CreationStep.svelte";
+  import SwapSection from "./SwapSection.svelte";
+  import WaitingJoin from "./partner/WaitingJoin.svelte";
+  import AllowanceStep from "./partner/AllowanceStep.svelte";
+  import Button from "./base/Button.svelte";
+  import FinalStep from "./partner/FinalStep.svelte";
+
+  
 </script>
 
-<div>
-  <h1>PARTNER: {$mainOrder.partner}</h1>
-  {#if !$mainOrder.isCreator}
-    {#if $partnerState == PartnerState.WaitingFirstConfirmation}
-      <CreationStep/>
-    {:else if $partnerState == PartnerState.AllowingAutonomousSwap}
-      <p>teste2</p>
-    {:else if $partnerState == PartnerState.WaitingCreatorAllowance}
-      <p>teste3</p>
-    {:else if $partnerState == PartnerState.WaitingCreatorsFunding}
-      <p>teste4</p>
-    {:else if $partnerState == PartnerState.SendingTokens}
-      <p>teste5</p>
-    {:else if $partnerState == PartnerState.Completed}
-      <p>teste6</p>
-    {/if}
-    
+<SwapSection>
+  <!-- {#if $mainOrder.finalTransaction == null} -->
+  {#if !($partnerState == PartnerState.Completed && $creatorState == CreatorState.Completed)}
+    <div>
+      <h1 class="pb-5"><strong>Creator:</strong> {$mainOrder.creator}</h1>
+      <hr class="mb-5 h-0.5 bg-black">
+      {#if $creatorState == CreatorState.WaitingForPartnerJoin}
+          <CreationStep isCreator={true}/>
+        {:else if $creatorState == CreatorState.AllowingAutonomousSwap || $creatorState == CreatorState.WaitingPartnerAllowance}
+          <AllowanceStep isCreator={true}/>
+        {:else if $creatorState == CreatorState.SendingTokens}
+          <FinalStep isCreator={true} />
+        {:else if $creatorState == CreatorState.WaitingPartnersTransfer}
+        <p>Finished! Now, just await for the partner.</p>
+        {:else if $creatorState == CreatorState.Completed}
+        <p>Finished!</p>
+        {/if}
+    </div>
+
+    <div>
+      <h1 class="pb-5"><strong>Partner:</strong> {($mainOrder.partner != '0x0000000000000000000000000000000000000000' && $mainOrder.partner) ? $mainOrder.partner : 'waiting...'}</h1>
+      <hr class="mb-5 h-0.5 bg-black">
+      {#if $partnerState == null}
+          <WaitingJoin>partner.</WaitingJoin>
+        {:else if $partnerState == PartnerState.WaitingFirstConfirmation}
+          <CreationStep on:click={() => {$creatorState = CreatorState.AllowingAutonomousSwap; $partnerState = PartnerState.AllowingAutonomousSwap}}/>
+        {:else if $partnerState == PartnerState.AllowingAutonomousSwap || $partnerState == PartnerState.WaitingCreatorAllowance}
+          <AllowanceStep />
+          {#if $creatorState == CreatorState.WaitingPartnerAllowance && $partnerState == PartnerState.WaitingCreatorAllowance}
+            <Button isStep={true} on:click={() => {$creatorState = CreatorState.SendingTokens; $partnerState = PartnerState.WaitingCreatorsFunding}}>Next Step</Button>
+          {/if}
+        {:else if $partnerState == PartnerState.WaitingCreatorsFunding}
+          <FinalStep />
+        {:else if $partnerState == PartnerState.Completed}
+          <p>Finished!</p>
+        {/if}
+    </div>
+
   {:else}
-    <p>WAITING</p>
+    <div class="col-span-2 ">
+      <h1 class="text-6xl">Order Completed!!!</h1>
+    </div>
   {/if}
-</div>
+</SwapSection>
