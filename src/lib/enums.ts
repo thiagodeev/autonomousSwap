@@ -3,6 +3,7 @@ export enum GeneralState {
   MetamaskConnectec,
   CreatingOrder,
   JoiningOrder,
+  ReturningToOrder,
   OrderCreated,
   OrderJoined,
 }

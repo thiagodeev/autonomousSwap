@@ -103,7 +103,7 @@
       {/if}
 
       {#if isJoining}
-      <!-- TokenId -->
+      <!-- OrderId -->
       <div class="relative mb-3">
         <label
         for="orderIdnumber"

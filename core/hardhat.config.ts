@@ -5,6 +5,14 @@ import 'dotenv/config'
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
   networks: {
+    sepolia: {
+      url: `https://ethereum-sepolia.publicnode.com`,
+      accounts: [process.env.ACCOUNT_PRIVATE_KEY!]
+    },
+    ganache: {
+      url: "HTTP://127.0.0.1:7545", // testnet
+      accounts: [process.env.ACCOUNT_PRIVATE_KEY!]
+    },
     mantleTest: {
       url: "https://rpc.testnet.mantle.xyz", // testnet
       accounts: [process.env.ACCOUNT_PRIVATE_KEY!]

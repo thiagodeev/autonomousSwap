@@ -10,7 +10,11 @@
   }
 
   let tokenType, interfaceID;
-  let _subOrder;
+  $: _subOrder = {
+    token: '',
+    quantity: '',
+    tokenId: ''
+  };
   if (isCreator) {
     [tokenType, interfaceID] = Object.entries(tokenTypes).find((element) => element[1] == $creatorSubOrder.interfaceID);
     _subOrder = {
@@ -18,6 +22,8 @@
       quantity: $creatorSubOrder.quantity,
       tokenId: $creatorSubOrder.tokenId
     }
+
+    console.log(_subOrder)
   } else {
     [tokenType, interfaceID] = Object.entries(tokenTypes).find((element) => element[1] == $partnerSubOrder.interfaceID);
     _subOrder = {
@@ -25,6 +31,7 @@
       quantity: $partnerSubOrder.quantity,
       tokenId: $partnerSubOrder.tokenId
     }
+    console.log(_subOrder)
   }
 
 

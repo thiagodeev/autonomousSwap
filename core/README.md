@@ -1,5 +1,11 @@
 # autonomousSwap
 
+Random ERC20 token: 0x2E6dd9771E607259F9F52AcD2A99Ba7A6483952d
+Random ERC721 token: 0xb829d0931FE3eFDE1E5E64BF8719ec4DFF51c9Da
+Random ERC1155 token: 0x97C998bDbBc40a257FdE53e781de949c300F5b20
+
+Sepolia flattened deployment: 0x9a642b656ea04452AbA6e85e11f669a782E5B226
+  Verification link: https://sepolia.etherscan.io/address/0x9a642b656ea04452aba6e85e11f669a782e5b226#code
 <!-- Mantle deployment: 0x89E93e36A9ac7059a7138F7b3cac85F3Ebc8725f -->
 Mantle flattened deployment: 0x1DD666CbBD10996584C9Cdce6518df0274BaEFD3
   Verification link: https://explorer.testnet.mantle.xyz/address/0x1DD666CbBD10996584C9Cdce6518df0274BaEFD3/contracts#address-tabs

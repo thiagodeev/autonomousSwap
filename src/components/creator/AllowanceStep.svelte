@@ -43,8 +43,8 @@
     }, 1000);
   }
   
-  if (partnerAllowance) {clearInterval(interval1); $creatorState == CreatorState.WaitingPartnerAllowance}
-  if (creatorAllowance) {clearInterval(interval2); $partnerState == PartnerState.WaitingCreatorAllowance}
+  if (partnerAllowance) {clearInterval(interval1); $creatorState = CreatorState.WaitingPartnerAllowance}
+  if (creatorAllowance) {clearInterval(interval2); $partnerState = PartnerState.WaitingCreatorAllowance}
 
   // onMount(async ()=>{
 //   creatorAllowance = await isAllowed($creatorSubOrder.token, interfaceID, $creatorSubOrder.quantity, $creatorSubOrder.tokenId)

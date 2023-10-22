@@ -36,6 +36,9 @@
         <CreationStep on:click={() => {$creatorState = CreatorState.AllowingAutonomousSwap; $partnerState = PartnerState.AllowingAutonomousSwap}}/>
       {:else if $partnerState == PartnerState.AllowingAutonomousSwap || $partnerState == PartnerState.WaitingCreatorAllowance}
         <AllowanceStep on:click={() => {$creatorState = CreatorState.SendingTokens; $partnerState = PartnerState.WaitingCreatorsFunding}}/>
+        <!-- {#if $creatorState == CreatorState.WaitingPartnerAllowance && $partnerState == PartnerState.WaitingCreatorAllowance}
+          
+        {/if} -->
       {:else if $partnerState == PartnerState.WaitingCreatorsFunding}
         <p>teste4</p>
       {:else if $partnerState == PartnerState.SendingTokens}

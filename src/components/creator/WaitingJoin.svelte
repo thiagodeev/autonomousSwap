@@ -11,7 +11,7 @@
 	onDestroy(unsubscribe);
 
   
-  _autonomousSwap.on('StepCompleted' as any, async (orderId, who, newStatus, event) => {
+  _autonomousSwap.once('StepCompleted' as any, async (orderId, who, newStatus, event) => {
     if (orderId == $mainOrder.orderId && who != $mainOrder.creator){
       let result = await _autonomousSwap.getSubOrderByUser(who, orderId);
 
