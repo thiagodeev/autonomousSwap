@@ -12,8 +12,8 @@
       <li class="flex items-center justify-center gap-2 p-4 selected {$steps >= 1 ? 'selected' : ''}">
 
         <p class="leading-none">
-          <strong class="block font-medium"> Details </strong>
-          <small class="mt-1"> Some info about you. </small>
+          <strong class="block font-medium"> Order Creation </strong>
+          <small class="mt-1"> The first step. </small>
         </p>
       </li>
 
@@ -25,8 +25,8 @@
         </span>
 
         <p class="leading-none">
-          <strong class="block font-medium"> Address </strong>
-          <small class="mt-1"> Where we sending it? </small>
+          <strong class="block font-medium"> Allowance </strong>
+          <small class="mt-1"> You and your parter must do it. </small>
         </p>
       </li>
 
@@ -34,7 +34,7 @@
 
         <p class="leading-none">
           <strong class="block font-medium"> Payment </strong>
-          <small class="mt-1"> Show us the money. </small>
+          <small class="mt-1"> Let them swap! </small>
         </p>
       </li>
 <!-- 

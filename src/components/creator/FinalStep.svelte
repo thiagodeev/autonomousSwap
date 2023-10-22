@@ -24,7 +24,6 @@
         if (newStatus == 3){
           console.log(event)
           $partnerState = PartnerState.Completed;
-          $creatorState = CreatorState.Completed;
 
           partnerFinished = true;
           _autonomousSwap.removeAllListeners();
@@ -40,6 +39,7 @@
 
     if (transactionReceipt.status == 1){
       creatorFinished = true;
+      $creatorState = CreatorState.Completed;
     }
   }
 </script>

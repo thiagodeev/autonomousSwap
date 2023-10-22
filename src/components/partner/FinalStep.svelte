@@ -23,7 +23,6 @@
       if (orderId == $mainOrder.orderId && who == $mainOrder.creator){
         if (newStatus == 2){
           console.log(event)
-          $partnerState = PartnerState.Completed;
           $creatorState = CreatorState.Completed;
 
           partnerFinished = true;
@@ -34,12 +33,13 @@
   }
 
 
-  async function transferFundsToSwap(){
+  async function validateAndCompleteTheSwap(){
     const transactionResponse: ContractTransactionResponse = await _autonomousSwap.validateAndCompleteTheSwap($mainOrder.orderId);
     const transactionReceipt = await transactionResponse.wait();
 
     if (transactionReceipt.status == 1){
-      creatorFinished = true;
+      partnerFinished = true;
+      $partnerState = PartnerState.Completed;
     }
   }
 </script>
@@ -58,7 +58,7 @@
   {#if partnerFinished}
   <p>Finished!</p>
   {:else}
-  <Button on:click={() => transferFundsToSwap()}>Finish swap.</Button>
+  <Button on:click={() => validateAndCompleteTheSwap()}>Finish swap.</Button>
   {/if}
 
 {/if}
